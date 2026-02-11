@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<p>
+    Your Transaction request has been successfully completed.
+
+    Your Transaction ID is: {{transaction_id}}.
+    {% if not shipmentID and not fcmID %}
+    Confirmation numbers for your Transaction are: {{confirmation_numbers}}.
+    {% endif %}
+    {% if fcmID %}
+    FCM booking ID for your Transaction is: {{fcmID}}.
+    {% endif %}
+    {% if housebillNumber %}
+    House Bill Number for your Transaction is: {{housebillNumber}}.
+    {% endif %}
+    {% if shipmentID %}
+    Shipment ID for your Transaction is: {{shipmentID}}.
+    {% endif %}
+</p>
+
+{% endblock %}

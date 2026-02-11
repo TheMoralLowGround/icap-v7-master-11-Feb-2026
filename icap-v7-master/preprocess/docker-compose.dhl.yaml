@@ -1,0 +1,23 @@
+version: "3.8"
+services:
+  worker:
+    build:
+      context: ./
+      dockerfile: Dockerfile.dhl
+    command: ./init-scripts/worker.sh
+    volumes:
+      - ./:/app
+      - ${BATCH_INPUT_PATH}:/batches
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL}
+      - WORKER_TIMEOUT=${WORKER_TIMEOUT}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+    extra_hosts:
+      - "localhost:host-gateway"
+    deploy:
+      replicas: ${WORKER_REPLICAS}

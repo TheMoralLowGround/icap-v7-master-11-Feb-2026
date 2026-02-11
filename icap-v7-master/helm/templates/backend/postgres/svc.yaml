@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-backend-postgres
+spec:
+  type: NodePort
+  selector:
+    application: {{ .Release.Name }}-backend-postgres
+  ports:
+  - port: 5432
+    targetPort: 5432

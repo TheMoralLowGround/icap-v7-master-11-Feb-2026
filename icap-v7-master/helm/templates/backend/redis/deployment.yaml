@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend-redis
+  labels:
+    application: {{ .Release.Name }}-backend-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: {{ .Release.Name }}-backend-redis
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      name: {{ .Release.Name }}-backend-redis
+      labels:
+        application: {{ .Release.Name }}-backend-redis
+    spec:
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.backendRedisData }}
+      containers:
+        - name: redis
+          image: {{ .Values.backend.redis.image }}
+          imagePullPolicy: IfNotPresent
+          resources:
+            {{- toYaml .Values.backend.redis.resources | nindent 12 }}
+          ports:
+            - containerPort: 6379
+              protocol: TCP
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data

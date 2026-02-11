@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-input-channel-celery
+  labels:
+    application: {{ .Release.Name }}-input-channel-celery
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: {{ .Release.Name }}-input-channel-celery
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      name: {{ .Release.Name }}-input-channel-celery
+      labels:
+        application: {{ .Release.Name }}-input-channel-celery
+    spec:
+      volumes:
+        - name: input-channel-files
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.inputChannelFiles }}
+      containers:
+        - name: celery
+          image: {{ .Values.common.artifactoryImageBaseUrl }}/{{ .Values.images.inputChannel.common.name }}:{{ .Values.images.inputChannel.common.tag }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - ./init-scripts/celery.sh
+          resources:
+            {{- toYaml .Values.inputChannel.celery.resources | nindent 12 }}
+          volumeMounts:
+            - name: input-channel-files
+              mountPath: /input-files
+          env:
+            {{ include "env.fromReleaseSecret" (dict "name" "SECRET_KEY" "suffix" "input-channel-django-secret-key" "key" "SECRET_KEY" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "DEBUG" "path" .Values.inputChannel.common.env.DEBUG) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "ALLOWED_HOSTS" "path" .Values.inputChannel.common.env.ALLOWED_HOSTS) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "CSRF_TRUSTED_ORIGINS" "path" .Values.inputChannel.common.env.CSRF_TRUSTED_ORIGINS) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "AUTO_MIGRATE" "path" .Values.inputChannel.common.env.AUTO_MIGRATE) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DB_HOST" "suffix" "input-channel-postgres-db-creds" "key" "DB_HOST" "context" .) | nindent 12 }}
+            {{ include "env.fromReleaseSecret" (dict "name" "DB_NAME" "suffix" "input-channel-postgres-db-creds" "key" "DB_NAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DB_PORT" "suffix" "input-channel-postgres-db-creds" "key" "DB_PORT" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DB_USERNAME" "suffix" "input-channel-postgres-db-creds" "key" "DB_USERNAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DB_PASSWORD" "suffix" "input-channel-postgres-db-creds" "key" "DB_PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "REDIS_HOST" "path" .Values.backend.common.env.REDIS_HOST) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "REDIS_PORT" "path" .Values.backend.common.env.REDIS_PORT) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_HOST" "suffix" "backend-rabbitmq-creds" "key" "HOST" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_PORT" "suffix" "backend-rabbitmq-creds" "key" "PORT" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_USERNAME" "suffix" "backend-rabbitmq-creds" "key" "USERNAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_PASSWORD" "suffix" "backend-rabbitmq-creds" "key" "PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "WORKER_TIMEOUT" "path" .Values.inputChannel.common.env.WORKER_TIMEOUT) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "MAX_RETRIES" "path" .Values.inputChannel.common.env.MAX_RETRIES) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "GRAPH_TIMEOUT" "path" .Values.inputChannel.common.env.GRAPH_TIMEOUT) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "GRAPH_BASE_URL" "path" .Values.inputChannel.common.env.GRAPH_BASE_URL) | nindent 12}}

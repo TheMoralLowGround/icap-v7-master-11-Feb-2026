@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-db-backup-script
+data:
+  backup-db.sh: |
+    #!/bin/bash
+
+    set -e
+    # set -x # Uncomment for debugging
+
+    echo "Input Parameters:"
+    echo "DB_HOST: $DB_HOST"
+    echo "DB_PORT: $DB_PORT"
+    echo "DB_NAME: $DB_NAME"
+    echo "PARALLEL_JOBS: $PARALLEL_JOBS"
+    echo ""
+
+    DB_SIZE=$(PGPASSWORD="$DB_PASSWORD" psql -h $DB_HOST -p $DB_PORT -U $DB_USERNAME -d $DB_NAME \
+        -t -c "SELECT pg_database_size('$DB_NAME') / 1024 / 1024;")
+
+    echo "Database size: ${DB_SIZE} MB"
+
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    FULL_BACKUP_FOLDER_PATH=${BACKUP_FOLDER}/${BACKUP_FILENAME_PREFIX}_${TIMESTAMP}
+    echo "Backup will be stored at: ${FULL_BACKUP_FOLDER_PATH}"
+
+    echo "Starting backup at server time $(date)"
+
+    PGPASSWORD="$DB_PASSWORD" pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USERNAME -w -Fd -j $PARALLEL_JOBS --schema=public $DB_NAME -f ${FULL_BACKUP_FOLDER_PATH}
+
+    echo "Backup completed at server time $(date)"
+    
+    BACKUP_SIZE=$(du -sh ${FULL_BACKUP_FOLDER_PATH} | awk '{print $1}')
+    echo "Backup size: ${BACKUP_SIZE}"

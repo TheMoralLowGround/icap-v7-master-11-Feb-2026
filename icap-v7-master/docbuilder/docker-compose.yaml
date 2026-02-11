@@ -1,0 +1,43 @@
+version: "3.8"
+services:
+  web:
+    build: ./
+    command: python manage.py run -h 0.0.0.0
+    ports:
+      - ${PORT}:5000
+    volumes:
+      - ./:/app
+    environment:
+      - FLASK_APP=${FLASK_APP}
+      - FLASK_ENV=${FLASK_ENV}
+      - BACKEND_URL=${BACKEND_URL}
+      - BACKEND_USER_NAME=${BACKEND_USER_NAME}
+      - BACKEND_PASSWORD=${BACKEND_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+    extra_hosts:
+      - "localhost:host-gateway"
+  worker:
+    build: ./
+    command: ./init-scripts/worker.sh
+    volumes:
+      - ./:/app
+    environment:
+      - BACKEND_URL=${BACKEND_URL}
+      - BACKEND_USER_NAME=${BACKEND_USER_NAME}
+      - BACKEND_PASSWORD=${BACKEND_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - WORKER_TIMEOUT=${WORKER_TIMEOUT}
+    extra_hosts:
+      - "localhost:host-gateway"
+    deploy:
+      replicas: ${WORKER_REPLICAS}

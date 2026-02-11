@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-preprocess-worker
+  labels:
+    application: {{ .Release.Name }}-preprocess-worker
+spec:
+  replicas: {{ .Values.preprocess.worker.replicas }}
+  selector:
+    matchLabels:
+      application: {{ .Release.Name }}-preprocess-worker
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      name: {{ .Release.Name }}-preprocess-worker
+      labels:
+        application: {{ .Release.Name }}-preprocess-worker
+    spec:
+      volumes:
+        - name: common-nas
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc1.commonNas.name }}
+      containers:
+        - name: worker
+          image: {{ .Values.common.artifactoryImageBaseUrl }}/{{ .Values.images.preprocess.common.name }}:{{ .Values.images.preprocess.common.tag }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - ./init-scripts/worker.sh
+          resources:
+            {{- toYaml .Values.preprocess.worker.resources | nindent 12 }}
+          volumeMounts:
+            - name: common-nas
+              subPath: {{ .Values.common.pvc1.commonNas.subPath.batches }}
+              mountPath: /batches
+          env:
+            {{ include "env.fromValues" (dict "name" "LOG_LEVEL" "path" .Values.preprocess.common.env.LOG_LEVEL) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "WORKER_TIMEOUT" "path" .Values.preprocess.common.env.WORKER_TIMEOUT) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "REDIS_HOST" "path" .Values.backend.common.env.REDIS_HOST) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "REDIS_PORT" "path" .Values.backend.common.env.REDIS_PORT) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_HOST" "suffix" "backend-rabbitmq-creds" "key" "HOST" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_PORT" "suffix" "backend-rabbitmq-creds" "key" "PORT" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_USERNAME" "suffix" "backend-rabbitmq-creds" "key" "USERNAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_PASSWORD" "suffix" "backend-rabbitmq-creds" "key" "PASSWORD" "context" .) | nindent 12}}

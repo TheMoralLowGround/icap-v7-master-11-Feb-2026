@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: pgadmin
+spec:
+  host: {{ .Values.pgadmin.route.host }}
+  port:
+    targetPort: 5050
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: pgadmin
+    weight: 100
+  wildcardPolicy: None

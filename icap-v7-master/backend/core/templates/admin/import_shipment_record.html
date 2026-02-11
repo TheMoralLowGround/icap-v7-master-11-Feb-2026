@@ -1,0 +1,17 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div>
+    <form action="." method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div>
+            <p>Upload an Excel file with a header row containing 'shipment_id'. It should have a column name of
+                `SOURCE_SHIPMENT_REF`</p>
+            <input type="file" name="excel_file" accept=".xlsx, .xls">
+        </div>
+        <div style="margin-top: 10px;">
+            <input type="submit" value="Import Excel">
+        </div>
+    </form>
+</div>
+{% endblock %}

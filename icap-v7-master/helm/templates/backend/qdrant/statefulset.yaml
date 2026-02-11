@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-backend-qdrant
+  labels:
+    application: {{ .Release.Name }}-backend-qdrant
+spec:
+  replicas: {{ .Values.backend.qdrant.replicas }}
+  serviceName: {{ .Release.Name }}-backend-qdrant
+  selector:
+    matchLabels:
+      application: {{ .Release.Name }}-backend-qdrant
+  template:
+    metadata:
+      labels:
+        application: {{ .Release.Name }}-backend-qdrant
+    spec:
+      volumes:
+        - name: qdrant-storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.backendQdrantData }}
+      containers:
+        - name: qdrant
+          image: {{ .Values.common.artifactoryPublicImageBaseUrl }}/{{ .Values.backend.qdrant.image }}
+          imagePullPolicy: IfNotPresent
+          resources:
+            {{- toYaml .Values.backend.qdrant.resources | nindent 12 }}
+          ports:
+            - containerPort: 6333
+              name: http
+              protocol: TCP
+            - containerPort: 6334
+              name: grpc
+              protocol: TCP
+          volumeMounts:
+            - name: qdrant-storage
+              mountPath: /tmp/storage
+              subPath: storage
+            - name: qdrant-storage
+              mountPath: /tmp/snapshots
+              subPath: snapshots
+          env:
+            - name: QDRANT__STORAGE__STORAGE_PATH
+              value: /tmp/storage
+            - name: QDRANT__STORAGE__SNAPSHOTS_PATH
+              value: /tmp/snapshots
+            {{ include "env.fromValues" (dict "name" "QDRANT_HOST" "path" .Values.backend.common.env.QDRANT_HOST) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "QDRANT_HTTP_PORT" "path" .Values.backend.common.env.QDRANT_HTTP_PORT) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "QDRANT_GRPC_PORT" "path" .Values.backend.common.env.QDRANT_GRPC_PORT) | nindent 12}}

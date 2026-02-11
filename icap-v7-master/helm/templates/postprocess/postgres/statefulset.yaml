@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-postprocess-postgres
+  labels:
+    application: {{ .Release.Name }}-postprocess-postgres
+spec:
+  replicas: {{ .Values.postprocess.postgres.replicas }}
+  serviceName: {{ .Release.Name }}-postprocess-postgres
+  selector:
+    matchLabels:
+      statefulset: {{ .Release.Name }}-postprocess-postgres
+  template:
+    metadata:
+      labels:
+        application: {{ .Release.Name }}-postprocess-postgres
+        statefulset: {{ .Release.Name }}-postprocess-postgres
+    spec:
+      volumes:
+        - name: pgsqldata
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.postprocessPostgresData }}
+        - name: db-backup
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.dbBackup }}
+      containers:
+        - name: postgres
+          image: {{ .Values.postprocess.postgres.image }}
+          resources:
+            {{- toYaml .Values.postprocess.postgres.resources | nindent 12 }}
+          env:
+            - name: POSTGRESQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name}}-postprocess-postgres-db-initial-creds
+                  key: DB_NAME
+            - name: POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name}}-postprocess-postgres-db-initial-creds
+                  key: DB_USERNAME
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name}}-postprocess-postgres-db-initial-creds
+                  key: DB_PASSWORD
+            - name: POSTGRESQL_VERSION
+              value: {{ .Values.postprocess.postgres.env.postgresqlVersion | quote }}
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - name: pgsqldata
+              mountPath: /var/lib/pgsql/data
+            - name: db-backup
+              mountPath: /dbdump
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRESQL_USER -d $POSTGRESQL_DATABASE -h localhost
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:            
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRESQL_USER -d $POSTGRESQL_DATABASE -h localhost
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5

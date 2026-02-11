@@ -1,0 +1,13 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ .Release.Name }}-backend-rabbitmq-dashboard
+spec:
+  host: {{ .Values.backend.rabbitmq.route.host }}
+  port:
+    targetPort: 15672
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    name: {{ .Release.Name }}-backend-rabbitmq

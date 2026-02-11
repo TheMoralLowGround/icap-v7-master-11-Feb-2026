@@ -1,0 +1,15 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ .Release.Name }}-classifier-nginx
+  annotations:
+    haproxy.router.openshift.io/timeout: {{ .Values.classifier.nginx.env.PROXY_TIMEOUT }}s
+spec:
+  host: {{ .Values.classifier.nginx.route.host }}
+  port:
+    targetPort: 8080
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    name: {{ .Release.Name }}-classifier-nginx

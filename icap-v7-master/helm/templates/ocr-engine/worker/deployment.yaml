@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-ocr-engine-worker
+  labels:
+    application: {{ .Release.Name }}-ocr-engine-worker
+spec:
+  replicas: {{ .Values.ocrEngine.worker.replicas }}
+  selector:
+    matchLabels:
+      application: {{ .Release.Name }}-ocr-engine-worker
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      name: {{ .Release.Name }}-ocr-engine-worker
+      labels:
+        application: {{ .Release.Name }}-ocr-engine-worker
+    spec:
+      volumes:
+        - name: common-nas
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc1.commonNas.name }}
+      containers:
+        - name: worker
+          image: {{ .Values.common.artifactoryImageBaseUrl }}/{{ .Values.images.ocrEngine.common.name }}:{{ .Values.images.ocrEngine.common.tag }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - ./init-scripts/worker.sh
+          resources:
+            {{- toYaml .Values.ocrEngine.worker.resources | nindent 12 }}
+          volumeMounts:
+            - name: common-nas
+              subPath: {{ .Values.common.pvc1.commonNas.subPath.batches }}
+              mountPath: /batches
+          env:
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_HOST" "suffix" "backend-rabbitmq-creds" "key" "HOST" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_PORT" "suffix" "backend-rabbitmq-creds" "key" "PORT" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_USERNAME" "suffix" "backend-rabbitmq-creds" "key" "USERNAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_PASSWORD" "suffix" "backend-rabbitmq-creds" "key" "PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "WORKER_TIMEOUT" "path" .Values.ocrEngine.worker.env.WORKER_TIMEOUT) | nindent 12}}

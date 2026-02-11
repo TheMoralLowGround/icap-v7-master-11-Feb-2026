@@ -1,0 +1,69 @@
+{{- range $name, $config := .Values.infra.cronJobs.postgresBackup }}
+---
+kind: CronJob
+apiVersion: batch/v1
+metadata:
+  name: {{ $.Release.Name }}-postgres-backup-{{ kebabcase $name }}
+spec:
+  schedule: {{ $config.schedule }}
+  concurrencyPolicy: Forbid
+  suspend: {{ $config.suspend }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          volumes:
+            - name: db-backup
+              persistentVolumeClaim:
+                claimName: {{ $.Values.common.pvc.dbBackup }}
+            - name: db-backup-script
+              configMap:
+                name: {{ $.Release.Name }}-db-backup-script
+                defaultMode: 0777
+          containers:
+            - name: main
+              image: {{ $.Values.common.artifactoryPublicImageBaseUrl }}/{{ $config.image }}
+              command:
+                - /scripts/backup-db.sh
+              env:
+                - name: DB_NAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ $config.dbCredsSecret }}
+                      key: DB_NAME
+                - name: DB_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ $config.dbCredsSecret }}
+                      key: DB_HOST
+                - name: DB_PORT
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ $config.dbCredsSecret }}
+                      key: DB_PORT
+                - name: DB_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ $config.dbCredsSecret }}
+                      key: DB_USERNAME
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ $config.dbCredsSecret }}
+                      key: DB_PASSWORD
+                - name: PARALLEL_JOBS
+                  value: {{ $config.env.parallelJobs | quote }}
+                - name: BACKUP_FOLDER
+                  value: {{ $config.env.backupFolder | quote }}
+                - name: BACKUP_FILENAME_PREFIX
+                  value: {{ $config.env.backupFilenamePrefix | quote }}
+              resources:
+                {{- toYaml $config.resources | nindent 16 }}
+              volumeMounts:
+                - name: db-backup
+                  mountPath: /dbdump
+                - name: db-backup-script
+                  mountPath: /scripts
+              imagePullPolicy: IfNotPresent
+{{- end }}

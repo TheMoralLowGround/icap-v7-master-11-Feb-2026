@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-classifier-postgres
+  labels:
+    application: {{ .Release.Name }}-classifier-postgres
+spec:
+  replicas: {{ .Values.classifier.postgres.replicas }}
+  serviceName: {{ .Release.Name }}-classifier-postgres
+  selector:
+    matchLabels:
+      statefulset: {{ .Release.Name }}-classifier-postgres
+  template:
+    metadata:
+      labels:
+        application: {{ .Release.Name }}-classifier-postgres
+        statefulset: {{ .Release.Name }}-classifier-postgres
+    spec:
+      volumes:
+        - name: classifier-postgres-data
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.classifierPostgresData }}
+      containers:
+        - name: postgres
+          image: {{ .Values.classifier.postgres.image }}
+          resources:
+            {{- toYaml .Values.classifier.postgres.resources | nindent 12 }}
+          env:
+            - name: POSTGRESQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name}}-classifier-postgres-db-initial-creds
+                  key: DB_NAME
+            - name: POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name}}-classifier-postgres-db-initial-creds
+                  key: DB_USERNAME
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name}}-classifier-postgres-db-initial-creds
+                  key: DB_PASSWORD
+            - name: POSTGRESQL_VERSION
+              value: {{ .Values.classifier.postgres.env.POSTGRESQL_VERSION | quote }}
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - name: classifier-postgres-data
+              mountPath: /var/lib/pgsql/data
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRESQL_USER -d $POSTGRESQL_DATABASE -h localhost
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRESQL_USER -d $POSTGRESQL_DATABASE -h localhost
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5

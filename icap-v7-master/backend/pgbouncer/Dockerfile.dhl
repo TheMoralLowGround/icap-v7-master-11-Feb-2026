@@ -1,0 +1,1 @@
+FROM docker.artifactory.dhl.com/bitnamilegacy/pgbouncer:1.23.1

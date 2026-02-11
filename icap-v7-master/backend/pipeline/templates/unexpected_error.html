@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<p>
+    Your Transaction request {{transaction_id}} failed.
+</p>
+<p>Details: <br>
+    {{error_message}}
+</p>
+
+{% endblock %}

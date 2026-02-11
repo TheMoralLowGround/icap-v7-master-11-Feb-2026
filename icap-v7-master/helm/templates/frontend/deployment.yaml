@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-frontend
+  labels:
+    application: {{ .Release.Name }}-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: {{ .Release.Name }}-frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      name: {{ .Release.Name }}-frontend
+      labels:
+        application: {{ .Release.Name }}-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: {{ .Values.common.artifactoryImageBaseUrl }}/{{ .Values.images.frontend.name }}:{{ .Values.images.frontend.tag }}
+          imagePullPolicy: IfNotPresent
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+          env:
+            - name: VUE_APP_BACKEND_URL
+              value: {{ .Values.frontend.env.VUE_APP_BACKEND_URL | quote}}
+            - name: VUE_APP_WEBSOCKET_URL
+              value: {{ .Values.frontend.env.VUE_APP_WEBSOCKET_URL | quote}}
+            - name: VUE_APP_RULES_BACKEND_URL
+              value: {{ .Values.frontend.env.VUE_APP_RULES_BACKEND_URL | quote}}
+            - name: VUE_APP_DISPLAY_V6_NAVIGATION
+              value: {{ .Values.frontend.env.VUE_APP_DISPLAY_V6_NAVIGATION | quote}}
+            - name: VUE_APP_DISPLAY_DEVELOPER_SETTINGS
+              value: {{ .Values.frontend.env.VUE_APP_DISPLAY_DEVELOPER_SETTINGS | quote}}
+            - name: VUE_APP_DEFAULT_DEFINITION_VERSION
+              value: {{ .Values.frontend.env.VUE_APP_DEFAULT_DEFINITION_VERSION | quote}}
+            - name: VUE_APP_GRAPECITY_SPREADJS_LICENSE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-frontend-grapecity-spreadjs-license
+                  key: secret
+          ports:
+            - containerPort: 8080
+              protocol: TCP

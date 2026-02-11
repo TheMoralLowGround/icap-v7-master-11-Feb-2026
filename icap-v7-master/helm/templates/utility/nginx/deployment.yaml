@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-utility-nginx
+  labels:
+    application: {{ .Release.Name }}-utility-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: {{ .Release.Name }}-utility-nginx
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      name: {{ .Release.Name }}-utility-nginx
+      labels:
+        application: {{ .Release.Name }}-utility-nginx
+    spec:
+      containers:
+        - name: nginx
+          image: {{ .Values.common.artifactoryImageBaseUrl }}/{{ .Values.images.utility.nginx.name }}:{{ .Values.images.utility.nginx.tag }}
+          imagePullPolicy: IfNotPresent
+          resources:
+            {{- toYaml .Values.utility.nginx.resources | nindent 12 }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            {{ include "env.fromValues" (dict "name" "WEB_HOST" "path" .Values.utility.nginx.env.WEB_HOST) | nindent 12}}

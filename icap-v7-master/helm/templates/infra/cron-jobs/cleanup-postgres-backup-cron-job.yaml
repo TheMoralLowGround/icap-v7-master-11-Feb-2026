@@ -1,0 +1,98 @@
+kind: CronJob
+apiVersion: batch/v1
+metadata:
+  name: {{ .Release.Name }}-cleanup-postgres-backup
+spec:
+  schedule: {{ .Values.infra.cronJobs.cleanupPostgresBackup.schedule }}
+  concurrencyPolicy: Forbid
+  suspend: {{ .Values.infra.cronJobs.cleanupPostgresBackup.suspend }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          volumes:
+            - name: db-backup
+              persistentVolumeClaim:
+                claimName: {{ .Values.common.pvc.dbBackup }}
+          containers:
+            - name: main
+              image: {{ .Values.infra.cronJobs.cleanupPostgresBackup.image }}
+              command:
+                - /bin/bash
+                - '-c'
+                - |
+                  #!/bin/bash
+                  set -e
+                  
+                  days_to_minutes() {
+                      local days=$1
+                      
+                      # Calculate minutes (1 day = 24 hours = 1440 minutes)
+                      local minutes=$((days * 1440))
+                      
+                      # Return the calculated minutes
+                      echo "$minutes"
+                  }
+
+                  # Function to check and delete files
+                  check_and_delete() {
+                      local directory=$1
+                      local pattern=$2
+                      local days=$3
+                      local minutes=$(days_to_minutes $days)
+                      
+                      echo "=== Checking $directory ==="
+                      echo "Looking for files matching: $pattern older than $days days"
+                      
+                      # First check if directory exists
+                      if [ ! -d "$directory" ]; then
+                          echo "ERROR: Directory $directory does not exist!"
+                          return 1
+                      fi
+
+                      # List files that will be deleted
+                      echo "Files to be deleted:"
+                      find "$directory" -name "$pattern" -maxdepth 1 -mmin "+$minutes" -ls
+                      
+                      # Count files that will be deleted
+                      count=$(find "$directory" -name "$pattern" -maxdepth 1 -mmin "+$minutes" | wc -l)
+                      echo "Found $count files to delete"
+                      
+                      # Delete files if any found
+                      if [ $count -gt 0 ]; then
+                          find "$directory" -name "$pattern" -maxdepth 1 -mmin "+$minutes" -exec rm -rf -v {} \;
+                          echo "Deleted $count files from $directory"
+                      else
+                          echo "No files to delete in $directory"
+                      fi
+                      
+                      echo "----------------------------------------"
+                  }
+
+                  echo "Operation started at server time: $(date)"
+
+                  # Array of cleanup configurations
+                  # Format: "directory:pattern:days"
+                  # Conver comma seprated string CLEANUP_CONFIGS environment variables to array CLEANUP_CONFIGS_LIST
+                  IFS=',' read -r -a CLEANUP_CONFIGS_LIST <<< "$CLEANUP_CONFIGS"
+
+                  # Process each configuration
+                  for config in "${CLEANUP_CONFIGS_LIST[@]}"; do
+                      IFS=':' read -r dir pattern days <<< "$config"
+                      full_path="$BACKUP_BASE_DIR/$dir"
+                      check_and_delete "$full_path" "$pattern" "$days"
+                  done
+
+                  echo "Operation completed at server time: $(date)"
+              env:
+                - name: BACKUP_BASE_DIR
+                  value: {{ .Values.infra.cronJobs.cleanupPostgresBackup.env.backupBaseDir | quote }}
+                - name: CLEANUP_CONFIGS
+                  value: {{ .Values.infra.cronJobs.cleanupPostgresBackup.env.cleanupConfigs | quote }}
+              resources:
+                {{- toYaml .Values.infra.cronJobs.cleanupPostgresBackup.resources | nindent 16 }}
+              volumeMounts:
+                - name: db-backup
+                  mountPath: /dbdump
+              imagePullPolicy: IfNotPresent

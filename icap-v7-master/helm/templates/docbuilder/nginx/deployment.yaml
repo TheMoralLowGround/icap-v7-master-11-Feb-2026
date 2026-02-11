@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-docbuilder-nginx
+  labels:
+    application: {{ .Release.Name }}-docbuilder-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: {{ .Release.Name }}-docbuilder-nginx
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      name: {{ .Release.Name }}-docbuilder-nginx
+      labels:
+        application: {{ .Release.Name }}-docbuilder-nginx
+    spec:
+      containers:
+        - name: nginx
+          image: {{ .Values.common.artifactoryImageBaseUrl }}/{{ .Values.images.docbuilder.nginx.name }}:{{ .Values.images.docbuilder.nginx.tag }}
+          imagePullPolicy: IfNotPresent
+          resources:
+            {{- toYaml .Values.docbuilder.nginx.resources | nindent 12 }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            {{ include "env.fromValues" (dict "name" "WEB_HOST" "path" .Values.docbuilder.nginx.env.WEB_HOST) | nindent 12}}

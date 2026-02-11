@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if customTemplate %}
+
+{% for data in templateData %}
+<p>Your E-booking has been created successfully for Sheet {{ sheetName }}.</p>
+<p>
+    Shipment ID#: {{ data.shipmentID|default:"Not Generated" }}<br>
+    Housebill Number#: {{ data.housebillNumber|default:"Not Generated" }}<br>
+    Shipper: {{ data.shipperName|default:"Not Found" }}<br>
+    Consignee: {{ data.consigneeName|default:"Not Found" }}<br>
+    Destination: {{ data.destinationLocation|default:"Not Found" }}<br>
+    Mapping ID: {{ data.mappingID|default:"Not Found" }}<br>
+    PCE/Weight(KG): {{ data.packageCount|default:"Not Found" }}/{{ data.grossWeight|default:"Not Found" }}
+</p>
+<br>
+{% endfor %}
+
+{% else %}
+
+<p>
+    Your Transaction request has been {% if error_count_dict.error_count %}partially completed with {{error_count_dict.error_count}} {% if not error_count_dict.has_api_call_failure %}document upload {% endif %}failures.{% else %}completed successfully.{% endif %}
+<br>
+    Your Transaction ID is: {{transaction_id}}. 
+<br>
+{% for identifier, id, housebill in multi_shipment_info %}
+   {{ identifier|default:"Not Generated" }} - {{ id_type }}: {{ id|default:"Not Generated" }} Housebill Number: {{ housebill|default:"Not Generated" }} <br>
+{% endfor %}
+</p>
+
+{% endif %}
+
+{% endblock %}

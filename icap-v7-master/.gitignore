@@ -1,0 +1,45 @@
+# Original exclusions
+classifier/core/scripts/layout_xml_files/
+classifier/core/scripts/ticket 3/
+classifier/core/check/
+classifier/old_issue/
+classifier/Ticket 4/
+llama-classifier
+classifier/core/scripts/test/
+classifier/core/scripts/unknow_xml/
+classifier/core/title_classfication/expo/
+classifier/ticket/
+backend/get_batch_from_remote.py
+huggingface/
+.vscode
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Environment
+.env
+.env.*
+venv/
+.venv/
+
+# Package manager credentials (contain JFrog API keys)
+.pip/
+.pypirc
+
+# Node
+node_modules/
+
+# Large model files (safety net)
+*.h5
+*.tar.gz
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db

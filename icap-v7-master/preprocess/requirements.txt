@@ -1,0 +1,24 @@
+# Preprocess Service - RabbitMQ Worker
+# Core dependencies for PDF processing and message queuing
+
+# Message Queue
+pika==1.3.2
+
+# Redis for caching and pub/sub
+redis==5.0.1
+
+# Dense Page Detection Dependencies
+onnxtr==0.8.0
+onnxruntime==1.16.3
+scikit-learn==1.0.2
+joblib==1.4.2
+pandas==1.4.0
+opencv-python-headless==4.8.1.78
+scipy
+numpy==1.22.3
+Pillow==10.4.0
+
+# PDF Processing Dependencies
+PyMuPDF==1.23.8
+pdf2image==1.17.0
+pdfplumber==0.11.5

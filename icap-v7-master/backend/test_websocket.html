@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <script>
+    // get token from front end or postman
+    const token = "b6557413cb55a4008513fc60214d06aa4b057d2ea5703e6fa7f6a9a215a07625"
+    const header = `Bearer ${token}`;
+  
+    // Make the axios request to get the ws_ticket
+    axios.get('http://localhost:8000/api/access_control/ws_ticket/', {headers: { Authorization: header}})
+      .then(res => {
+        const wsTicket = res.data.ws_ticket;
+  
+        // Create a function to establish the websocket connection
+        function connectWebSocket(wsTicket) {
+          const wsUrl = `ws://localhost:8000/ws/notifications/?ws_ticket=${wsTicket}`;
+          const connection = new WebSocket(wsUrl);
+          
+          // Define event handlers for the websocket
+          connection.onopen = function(event) {
+            console.log('WebSocket connection established');
+            // Once the connection is open, send the join_room message
+            // connect to the room you where you're sending your messages to, in order to see the messages with onmessage.
+            // Note: You can put any room name valid or invalid, it creates a new romm if it doesn't exist, so make sure to input the correct room name.
+            // example room name timeline_BD_TEST_CustomsEntryUpdate_Bill-Of-Entry
+            const roomName = 'timeline_BD_TEST_CustomsEntryUpdate_Bill-Of-Entry'
+            connection.send(JSON.stringify({ type: 'join_room', room_name: roomName }));
+            console.log('Room Joined! : "timeline_BD_TEST_CustomsEntryUpdate_Bill-Of-Entry"');
+          };
+          connection.onmessage = function(event) {
+            console.log("Received message:", event.data);
+            // Handle incoming messages here
+          };
+  
+          connection.onerror = function(error) {
+            console.error('WebSocket error:', error);
+          };
+  
+          connection.onclose = function(event) {
+            console.log('WebSocket connection closed');
+          };
+  
+          return connection;
+        }
+  
+        // Call the function to establish the websocket connection
+        const wsConnection = connectWebSocket(wsTicket);
+      })
+      .catch(error => {
+        console.error('Error fetching ws_ticket:', error);
+      });
+  </script>
+  <p>Open Network tab to check websocket messages.</p>
+  </body>
+</html>

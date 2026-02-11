@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  worker:
+    build: ./
+    command: ./init-scripts/worker.sh
+    volumes:
+      - ./:/app
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GROQ_API_SECRET=${GROQ_API_SECRET}
+      - LOCAL_LLM_SERVER_API=${LOCAL_LLM_SERVER_API}
+      - TEMPERATURE=${TEMPERATURE}
+      - MAX_COMPLETION_TOKENS=${MAX_COMPLETION_TOKENS}
+      - TOP_P=${TOP_P}
+      - REASONING_EFFORT=${REASONING_EFFORT}
+      - VECTOR_DATA_BASE_API=${VECTOR_DATA_BASE_API}
+      - MAX_WORKER_THREAD=${MAX_WORKER_THREAD}
+    extra_hosts:
+      - "localhost:host-gateway"
+    deploy:
+      replicas: ${WORKER_REPLICAS}

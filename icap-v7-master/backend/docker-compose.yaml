@@ -1,0 +1,405 @@
+version: "3.8"
+
+services:
+  web:
+    build: ./
+    command: ./init-scripts/web-dev.sh
+    expose:
+      - 8000
+    ports:
+      - 8050:8050
+    volumes:
+      - ./:/app
+      - ${BATCH_INPUT_PATH}:/batches
+      - ${DATASET_BATCH_INPUT_PATH}:/training-dataset
+      - ${CHANGE_LOGS_PATH}:/change_logs
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - AUTO_MIGRATE=${AUTO_MIGRATE}
+      - DB_NAME=${DB_NAME}
+      - PGBOUNCER_HOST=${PGBOUNCER_HOST}
+      - PGBOUNCER_PORT=${PGBOUNCER_PORT}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - DOCBUILDER_API_URL=${DOCBUILDER_API_URL}
+      - UTILITY_API_URL=${UTILITY_API_URL}
+      - ICAP_API_URL=${ICAP_API_URL}
+      - DEFINITION_VERSIONS=${DEFINITION_VERSIONS}
+      - DEFAULT_DEFINITION_VERSION=${DEFAULT_DEFINITION_VERSION}
+      - DATACAP_API_BASE_URL=${DATACAP_API_BASE_URL}
+      - DATACAP_APP=${DATACAP_APP}
+      - DATACAP_USER=${DATACAP_USER}
+      - DATACAP_PASSWORD=${DATACAP_PASSWORD}
+      - DATACAP_STATION=${DATACAP_STATION}
+      - DATACAP_JOB=${DATACAP_JOB}
+      - DATACAP_MILI_JOB=${DATACAP_MILI_JOB}
+      - ENABLE_LDAP_AUTH=${ENABLE_LDAP_AUTH}
+      - LDAP_SERVER_ADDRESS=${LDAP_SERVER_ADDRESS}
+      - LDAP_SERVER_PORT=${LDAP_SERVER_PORT}
+      - LDAP_BIND_DN=${LDAP_BIND_DN}
+      - LDAP_BIND_PASSWORD=${LDAP_BIND_PASSWORD}
+      - LDAP_USER_SEARCH_DN=${LDAP_USER_SEARCH_DN}
+      - LDAP_GROUP_SEARCH_DN=${LDAP_GROUP_SEARCH_DN}
+      - LDAP_AUTH_USER_GROUP=${LDAP_AUTH_USER_GROUP}
+      - LDAP_AUTH_SUPERUSER_GROUP=${LDAP_AUTH_SUPERUSER_GROUP}
+      - SEND_EMAILS=${SEND_EMAILS}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - CLASSIFIER_API_URL=${CLASSIFIER_API_URL}
+      - MAX_RETRY=${MAX_RETRY}
+      - RETRY_INTERVAL=${RETRY_INTERVAL}
+      - SERVER_IP=${SERVER_IP}
+      - SAVE_TRANSACTION_LOG=${SAVE_TRANSACTION_LOG}
+      - DATACAP_CALLBACK_AWAITING=${DATACAP_CALLBACK_AWAITING}
+      - BATCH_ID_PREFIX=${BATCH_ID_PREFIX}
+      - AI_AGENT_HOST=${AI_AGENT_HOST}
+      - AI_AGENT_PORT=${AI_AGENT_PORT}
+      - LOGIN_TIMEOUT_VALUE=${LOGIN_TIMEOUT_VALUE}
+      - DDH_BASE_URL=${DDH_BASE_URL}
+      - DDH_USERNAME=${DDH_USERNAME}
+      - DDH_PASSWORD=${DDH_PASSWORD}
+      - ANNOTATION_BASE_URL=${ANNOTATION_BASE_URL}
+      - ANNOTATION_USERNAME=${ANNOTATION_USERNAME}
+      - ANNOTATION_PASSWORD=${ANNOTATION_PASSWORD}
+      - INPUT_CHANNEL_BASE_URL=${INPUT_CHANNEL_BASE_URL}
+      - INPUT_CHANNEL_USERNAME=${INPUT_CHANNEL_USERNAME}
+      - INPUT_CHANNEL_PASSWORD=${INPUT_CHANNEL_PASSWORD}
+      - SELECTED_DATASET_LIST_FILE=${SELECTED_DATASET_LIST_FILE}
+      - FERNET_SECRET_KEY=${FERNET_SECRET_KEY}
+      - QDRANT_VECTOR_DB_BASE_URL=${QDRANT_VECTOR_DB_BASE_URL}
+      - GRAPECITY_SPREADJS_LICENSE=${GRAPECITY_SPREADJS_LICENSE}
+    depends_on:
+      - pgbouncer
+      - redis
+      - rabbitmq
+    extra_hosts:
+      - "localhost:host-gateway"
+  daphne:
+    build: ./
+    command: daphne -b 0.0.0.0 -p 8001 app.asgi:application
+    expose:
+      - 8001
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - AUTO_MIGRATE=${AUTO_MIGRATE}
+      - DB_NAME=${DB_NAME}
+      - PGBOUNCER_HOST=${PGBOUNCER_HOST}
+      - PGBOUNCER_PORT=${PGBOUNCER_PORT}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - DOCBUILDER_API_URL=${DOCBUILDER_API_URL}
+      - UTILITY_API_URL=${UTILITY_API_URL}
+      - ICAP_API_URL=${ICAP_API_URL}
+      - DATACAP_API_BASE_URL=${DATACAP_API_BASE_URL}
+      - DEFINITION_VERSIONS=${DEFINITION_VERSIONS}
+      - DEFAULT_DEFINITION_VERSION=${DEFAULT_DEFINITION_VERSION}
+      - AI_AGENT_HOST=${AI_AGENT_HOST}
+      - AI_AGENT_PORT=${AI_AGENT_PORT}
+    depends_on:
+      - web
+      - redis
+    extra_hosts:
+      - "localhost:host-gateway"
+  worker:
+    build: ./
+    command: ./init-scripts/worker.sh
+    volumes:
+      - ./:/app
+      - ${BATCH_INPUT_PATH}:/batches
+      - ${DATASET_BATCH_INPUT_PATH}:/training-dataset
+      - ${SCRIPTS_INPUT_PATH}:/scripts
+      - ${INPUT_FILES_PATH}:/input-files
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - AUTO_MIGRATE=${AUTO_MIGRATE}
+      - DB_NAME=${DB_NAME}
+      - PGBOUNCER_HOST=${PGBOUNCER_HOST}
+      - PGBOUNCER_PORT=${PGBOUNCER_PORT}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - DOCBUILDER_API_URL=${DOCBUILDER_API_URL}
+      - UTILITY_API_URL=${UTILITY_API_URL}
+      - ICAP_API_URL=${ICAP_API_URL}
+      - DEFINITION_VERSIONS=${DEFINITION_VERSIONS}
+      - DEFAULT_DEFINITION_VERSION=${DEFAULT_DEFINITION_VERSION}
+      - DATACAP_API_BASE_URL=${DATACAP_API_BASE_URL}
+      - DATACAP_APP=${DATACAP_APP}
+      - DATACAP_USER=${DATACAP_USER}
+      - DATACAP_PASSWORD=${DATACAP_PASSWORD}
+      - DATACAP_STATION=${DATACAP_STATION}
+      - DATACAP_JOB=${DATACAP_JOB}
+      - DATACAP_MILI_JOB=${DATACAP_MILI_JOB}
+      - SEND_EMAILS=${SEND_EMAILS}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - CLASSIFIER_API_URL=${CLASSIFIER_API_URL}
+      - MOCK_ASSEMBLY_APIS=${MOCK_ASSEMBLY_APIS}
+      - CUSTOMS_API_BASE_URL=${CUSTOMS_API_BASE_URL}
+      - DSC_API_BASE_URL=${DSC_API_BASE_URL}
+      - DSC_API_CLIENT_ID=${DSC_API_CLIENT_ID}
+      - DSC_API_CLIENT_SECRET=${DSC_API_CLIENT_SECRET}
+      - FREIGHT_API_CLIENT_ID=${FREIGHT_API_CLIENT_ID}
+      - FREIGHT_API_CLIENT_SECRET=${FREIGHT_API_CLIENT_SECRET}
+      - CUSTOMS_API_KEY=${CUSTOMS_API_KEY}
+      - EDM_API_KEY=${EDM_API_KEY}
+      - MAX_RETRY=${MAX_RETRY}
+      - RETRY_INTERVAL=${RETRY_INTERVAL}
+      - TIMESTAMP_API_BASE_URL=${TIMESTAMP_API_BASE_URL}
+      - DHL_API_KEY=${DHL_API_KEY}
+      - SERVER_IP=${SERVER_IP}
+      - USA_API_BASE_URL=${USA_API_BASE_URL}
+      - USA_API_KEY=${USA_API_KEY}
+      - SAVE_TRANSACTION_LOG=${SAVE_TRANSACTION_LOG}
+      - FCM_CLIENT_ID=${FCM_CLIENT_ID}
+      - FCM_CLIENT_SECRET=${FCM_CLIENT_SECRET}
+      - BATCH_ID_PREFIX=${BATCH_ID_PREFIX}
+      - SELECTED_DATASET_LIST_FILE=${SELECTED_DATASET_LIST_FILE}
+      - QDRANT_HOST=${QDRANT_HOST}
+      - QDRANT_HTTP_PORT=${QDRANT_HTTP_PORT}
+      - QDRANT_GRPC_PORT=${QDRANT_GRPC_PORT}
+      - FERNET_SECRET_KEY=${FERNET_SECRET_KEY}
+      - LAYOUT_SIMILARITY_THRESHOLD=${LAYOUT_SIMILARITY_THRESHOLD}
+    depends_on:
+      - web
+    extra_hosts:
+      - "localhost:host-gateway"
+    deploy:
+      replicas: ${WORKER_REPLICAS}
+  redis-log-subscriber:
+    build: ./
+    command: ./init-scripts/redis-log-subscriber.sh
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - DEFINITION_VERSIONS=${DEFINITION_VERSIONS}
+      - AUTO_MIGRATE=${AUTO_MIGRATE}
+      - DB_NAME=${DB_NAME}
+      - PGBOUNCER_HOST=${PGBOUNCER_HOST}
+      - PGBOUNCER_PORT=${PGBOUNCER_PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - LOG_UPDATE_CHANNEL=${LOG_UPDATE_CHANNEL}
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+  celery:
+    build: ./
+    command: ./init-scripts/celery.sh
+    volumes:
+      - ./:/app
+      - ${BATCH_INPUT_PATH}:/batches
+      - ${DATASET_BATCH_INPUT_PATH}:/training-dataset
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - AUTO_MIGRATE=${AUTO_MIGRATE}
+      - DB_NAME=${DB_NAME}
+      - PGBOUNCER_HOST=${PGBOUNCER_HOST}
+      - PGBOUNCER_PORT=${PGBOUNCER_PORT}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - DOCBUILDER_API_URL=${DOCBUILDER_API_URL}
+      - UTILITY_API_URL=${UTILITY_API_URL}
+      - ICAP_API_URL=${ICAP_API_URL}
+      - DATACAP_API_BASE_URL=${DATACAP_API_BASE_URL}
+      - DEFINITION_VERSIONS=${DEFINITION_VERSIONS}
+      - DEFAULT_DEFINITION_VERSION=${DEFAULT_DEFINITION_VERSION}
+      - SELECTED_DATASET_LIST_FILE=${SELECTED_DATASET_LIST_FILE}
+    depends_on:
+      - web
+    extra_hosts:
+      - "localhost:host-gateway"
+  celery_beat:
+    build: ./
+    command: ./init-scripts/celery_beat.sh
+    volumes:
+      - ./:/app
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - AUTO_MIGRATE=${AUTO_MIGRATE}
+      - DB_NAME=${DB_NAME}
+      - PGBOUNCER_HOST=${PGBOUNCER_HOST}
+      - PGBOUNCER_PORT=${PGBOUNCER_PORT}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - DOCBUILDER_API_URL=${DOCBUILDER_API_URL}
+      - UTILITY_API_URL=${UTILITY_API_URL}
+      - ICAP_API_URL=${ICAP_API_URL}
+      - DATACAP_API_BASE_URL=${DATACAP_API_BASE_URL}
+      - DEFINITION_VERSIONS=${DEFINITION_VERSIONS}
+      - DEFAULT_DEFINITION_VERSION=${DEFAULT_DEFINITION_VERSION}
+    depends_on:
+      - web
+    extra_hosts:
+      - "localhost:host-gateway"
+  nginx:
+    build:
+      context: ./nginx
+      args:
+        CONFIG_FILE: nginx.dev.conf.template
+    ports:
+      - ${PORT}:8080
+    volumes:
+      - ${BATCH_INPUT_PATH}:/app/batches
+      - ${DATASET_BATCH_INPUT_PATH}:/app/training-dataset
+    environment:
+      - WEB_HOST=web:8000
+      - DAPHNE_HOST=daphne:8001
+    depends_on:
+      - web
+  postgres:
+    build:
+      context: ./postgres
+    expose:
+      - 5432
+    ports:
+      - ${DB_HOST_BIND_PORT}:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME} -h localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+  pgbouncer:
+    build:
+      context: ./pgbouncer
+    ports:
+      - "${PGBOUNCER_PORT}:6432"
+    environment:
+      - POSTGRESQL_HOST=${DB_HOST}
+      - POSTGRESQL_PORT=${DB_PORT}
+      - POSTGRESQL_DATABASE=${DB_NAME}
+      - POSTGRESQL_USERNAME=${DB_USERNAME}
+      - POSTGRESQL_PASSWORD=${DB_PASSWORD}
+      - PGBOUNCER_DATABASE=${DB_NAME}
+      - PGBOUNCER_PORT=${PGBOUNCER_PORT}
+      - PGBOUNCER_LISTEN_ADDRESS=0.0.0.0
+      - PGBOUNCER_AUTH_TYPE=trust
+      - PGBOUNCER_POOL_MODE=${PGBOUNCER_POOL_MODE}
+      - PGBOUNCER_MAX_CLIENT_CONN=${PGBOUNCER_MAX_CLIENT_CONN}
+      - PGBOUNCER_DEFAULT_POOL_SIZE=${PGBOUNCER_DEFAULT_POOL_SIZE}
+      - PGBOUNCER_MIN_POOL_SIZE=${PGBOUNCER_MIN_POOL_SIZE}
+      - PGBOUNCER_RESERVE_POOL_SIZE=${PGBOUNCER_RESERVE_POOL_SIZE}
+      - PGBOUNCER_MAX_DB_CONNECTIONS=${PGBOUNCER_MAX_DB_CONNECTIONS}
+    depends_on:
+      postgres:
+        condition: service_healthy
+  redis:
+    build:
+      context: ./redis
+    ports:
+      - ${REDIS_PORT}:6379
+    volumes:
+      - redis_data:/data
+  rabbitmq:
+    build:
+      context: ./rabbitmq
+    ports:
+      - ${RABBITMQ_PORT}:5672
+      - ${RABBITMQ_DASHBOARD_PORT}:15672
+      - "15692:15692"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    hostname: ${RABBITMQ_SYSTEM_HOSTNAME}
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - "${QDRANT_HTTP_PORT:-6333}:6333"
+      - "${QDRANT_GRPC_PORT:-6334}:6334"
+    volumes:
+      - ${QDRANT_STORAGE_PATH}:/qdrant/storage
+    restart: unless-stopped
+    environment:
+      - QDRANT_HOST=${QDRANT_HOST}
+      - QDRANT_HTTP_PORT=${QDRANT_HTTP_PORT}
+      - QDRANT_GRPC_PORT=${QDRANT_GRPC_PORT}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:

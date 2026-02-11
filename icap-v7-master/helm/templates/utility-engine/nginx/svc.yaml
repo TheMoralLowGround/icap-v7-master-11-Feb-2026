@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-utility-engine-nginx
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    application: {{ .Release.Name }}-utility-engine-nginx
+  type: ClusterIP

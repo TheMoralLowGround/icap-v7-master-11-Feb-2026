@@ -1,0 +1,13 @@
+/.git
+/.gitignore
+/.env
+/.env.example
+/.vscode
+
+/Dockerfile
+/docker-compose.yaml
+/docker-compose.prod.yaml
+/postgres
+
+/start.sh
+/stop.sh

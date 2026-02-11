@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-backend-postgres
+  labels:
+    application: {{ .Release.Name }}-backend-postgres
+spec:
+  replicas: {{ .Values.backend.postgres.replicas }}
+  serviceName: {{ .Release.Name }}-backend-postgres
+  selector:
+    matchLabels:
+      statefulset: {{ .Release.Name }}-backend-postgres
+  template:
+    metadata:
+      labels:
+        application: {{ .Release.Name }}-backend-postgres
+        statefulset: {{ .Release.Name }}-backend-postgres
+    spec:
+      volumes:
+        - name: pgsqldata
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.backendPostgresData }}
+        - name: db-backup
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.dbBackup }}
+      containers:
+        - name: postgres
+          image: {{ .Values.backend.postgres.image }}
+          resources:
+            {{- toYaml .Values.backend.postgres.resources | nindent 12 }}
+          env:
+            - name: POSTGRESQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name}}-backend-postgres-db-initial-creds
+                  key: DB_NAME
+            - name: POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name}}-backend-postgres-db-initial-creds
+                  key: DB_USERNAME
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name}}-backend-postgres-db-initial-creds
+                  key: DB_PASSWORD
+            - name: POSTGRESQL_VERSION
+              value: {{ .Values.backend.postgres.env.postgresqlVersion | quote }}
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - name: pgsqldata
+              mountPath: /var/lib/pgsql/data
+            - name: db-backup
+              mountPath: /dbdump
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRESQL_USER -d $POSTGRESQL_DATABASE -h localhost
+            initialDelaySeconds: 15  # equivalent to start_period in docker-commpose
+            periodSeconds: 10        # equivalent to interval in docker-commpose
+            timeoutSeconds: 5        # equivalent to timeout in docker-commpose
+            failureThreshold: 5      # equivalent to retries in docker-commpose
+          readinessProbe:            # It's recommended to include readinessProbe alongside livenessProbe
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRESQL_USER -d $POSTGRESQL_DATABASE -h localhost
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5

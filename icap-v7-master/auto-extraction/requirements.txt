@@ -1,0 +1,26 @@
+# Auto-Extraction Service - RabbitMQ Worker
+# Core dependencies for document extraction and message processing
+
+# Message Queue
+pika==1.3.2
+
+# Redis for caching and pub/sub
+redis[hiredis]==5.0.1
+
+# Data processing and validation
+pydantic==2.11.5
+pydantic-settings==2.9.1
+python-dotenv==1.1.0
+requests==2.32.3
+numpy==1.24.3
+
+# Text processing and matching
+rapidfuzz==3.5.2
+
+# Document processing
+Pillow==10.1.0
+
+# External API clients
+groq
+
+# Development tools

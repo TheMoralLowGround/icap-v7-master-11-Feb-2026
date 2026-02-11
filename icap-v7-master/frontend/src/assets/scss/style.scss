@@ -1,0 +1,138 @@
+/*================================================================================
+
+NOTE:
+------
+PLACE HERE YOUR OWN SCSS CODES AND IF NEEDED, OVERRIDE THE STYLES FROM THE OTHER STYLESHEETS.
+WE WILL RELEASE FUTURE UPDATES SO IN ORDER TO NOT OVERWRITE YOUR STYLES IT'S BETTER LIKE THIS.  */
+
+// Side drawer
+.main-menu.menu-fixed.menu-accordion .navbar-header {
+    height: 9rem !important;
+}
+.custom-nav-toggle {
+    margin-top: 2.1rem !important;
+    margin-bottom: auto !important;
+}
+
+// Top Navigation
+.horizontal-menu .header-navbar.navbar-brand-center .navbar-header {
+    left: calc(50%) !important;
+    transform: translateX(-50%);
+}
+
+.custom-horizontal-nav {
+    .navbar-container.main-menu-content {
+        padding: 0px !important;
+    }
+    .nav-item {
+        padding-top: 0px !important;
+        padding-bottom: 0px !important;
+    }
+}
+
+.header-navbar-shadow {
+    display: none !important;
+}
+
+body:not(.dark-layout) legend {
+    color: #5e5873;
+}
+
+.table-with-inputs {
+    overflow-x: visible;
+}
+
+// Batch page
+.batch-page {
+    .card-body {
+        padding: 0.5rem;
+    }
+    .card {
+        margin-bottom: 0.5rem;
+    }
+    .row {
+        margin-right: -0.5rem;
+        margin-left: -0.5rem;
+    }
+    [class^="col"] {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .separator {
+        border:0.5px solid #ebe9f1
+    }
+   
+}
+.dark-layout .batch-page {
+     .separator {
+        border-color: #3b4253;
+    }
+}
+
+.horizontal-layout .app-content.content.batch-page-wrapper {
+    padding: calc(0.5rem + 4.45rem + 0rem) 0.5rem 0 0.5rem !important;
+}
+
+.custom-table {
+    td {
+        padding: 0.2rem 0.3rem;
+        vertical-align: baseline;
+    }
+    th {
+        padding: 0.72rem 0.4rem;
+    }
+}
+
+.v-select {
+    .vs__dropdown-menu {
+        z-index: 9999;
+    }
+}
+
+.timeline-popover{
+    width: 50% !important;
+}
+
+.draggable-ghost {
+  background: #7267f077;
+}
+
+.splitpanes__splitter {
+    background-color: transparent !important;
+    border: 0px !important;
+}
+
+.dark-layout .splitpanes.default-theme .splitpanes__splitter:before,
+.dark-layout .splitpanes.default-theme .splitpanes__splitter:after {
+    background-color: #3b4253;
+}
+
+.dark-layout .splitpanes.default-theme .splitpanes__splitter:hover:before,
+.dark-layout .splitpanes.default-theme .splitpanes__splitter:hover:after {
+    background-color: #545556;
+}
+
+.splitpanes .splitpanes__pane {
+    transition: none !important;
+}
+.splitpanes__pane {
+    background-color: transparent !important;
+    box-shadow: 0 3px 16px 0 rgb(34 41 47 / 10%);
+}
+
+.Vue-Toastification__toast small.text-body, .Vue-Toastification__toast .toastification-title{
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+// Custom font class
+.font-1rem {
+  font-size: 1rem;
+}
+
+.max-table-col-w {
+  max-width: 500px;
+  overflow-wrap: break-word;
+  white-space: normal;
+}

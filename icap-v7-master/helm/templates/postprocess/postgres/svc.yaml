@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-postprocess-postgres
+spec:
+  clusterIP: None  # Headless service
+  selector:
+    application: {{ .Release.Name }}-postprocess-postgres
+  ports:
+  - port: 5432
+    targetPort: 5432

@@ -1,0 +1,14 @@
+/.git
+/.gitignore
+/.env
+/.env.example
+
+/Dockerfile
+/docker-compose.yaml
+/docker-compose.prod.yaml
+/nginx
+
+/temp
+
+/start.sh
+/stop.sh

@@ -1,0 +1,13 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ .Release.Name }}-input-channel-web
+spec:
+  host: {{ .Values.inputChannel.web.route.host }}
+  port:
+    targetPort: 8000
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    name: {{ .Release.Name }}-input-channel-web

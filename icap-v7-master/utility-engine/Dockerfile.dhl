@@ -1,0 +1,25 @@
+FROM docker.artifactory.dhl.com/aidbdockers/utility-base:ubi8
+
+#please do not remove - start
+COPY .pypirc /app/
+COPY .pip/pip.conf /app/
+COPY .pip/pip.conf  ~/.pip/pip.conf
+#please do not remove - end 
+
+ENV PYTHONDONTWRITEBYTECODE=1
+
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+#** START BELOW is DHL RELATED***
+RUN chgrp -R 0 /app && \
+    chmod -R g=u /app
+    
+#** END  BELOW is DHL RELATED***
+
+COPY requirements.txt .
+
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+COPY . .

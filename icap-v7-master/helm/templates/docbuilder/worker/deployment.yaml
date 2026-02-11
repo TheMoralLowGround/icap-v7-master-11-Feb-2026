@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-docbuilder-worker
+  labels:
+    application: {{ .Release.Name }}-docbuilder-worker
+spec:
+  replicas: {{ .Values.docbuilder.worker.replicas }}
+  selector:
+    matchLabels:
+      application: {{ .Release.Name }}-docbuilder-worker
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      name: {{ .Release.Name }}-docbuilder-worker
+      labels:
+        application: {{ .Release.Name }}-docbuilder-worker
+    spec:
+      containers:
+        - name: worker
+          image: {{ .Values.common.artifactoryImageBaseUrl }}/{{ .Values.images.docbuilder.common.name }}:{{ .Values.images.docbuilder.common.tag }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - ./init-scripts/worker.sh
+          resources:
+            {{- toYaml .Values.docbuilder.worker.resources | nindent 12 }}
+          env:
+            {{ include "env.fromReleaseSecret" (dict "name" "BACKEND_URL" "suffix" "backend-creds" "key" "URL" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "BACKEND_USER_NAME" "suffix" "backend-creds" "key" "USER_NAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "BACKEND_PASSWORD" "suffix" "backend-creds" "key" "PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "REDIS_HOST" "path" .Values.backend.common.env.REDIS_HOST) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "REDIS_PORT" "path" .Values.backend.common.env.REDIS_PORT) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_HOST" "suffix" "backend-rabbitmq-creds" "key" "HOST" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_PORT" "suffix" "backend-rabbitmq-creds" "key" "PORT" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_USERNAME" "suffix" "backend-rabbitmq-creds" "key" "USERNAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_PASSWORD" "suffix" "backend-rabbitmq-creds" "key" "PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "WORKER_TIMEOUT" "path" .Values.docbuilder.worker.env.WORKER_TIMEOUT) | nindent 12}}

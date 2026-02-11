@@ -1,0 +1,58 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: pgadmin
+  labels:
+    application: pgadmin
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  replicas: 1
+  selector:
+    matchLabels:
+      application: pgadmin
+  template:
+    metadata:
+      name: pgadmin
+      labels:
+        application: pgadmin
+    spec:
+      volumes:
+        - name: pgadmin-data
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.pgadminData }}
+      containers:
+        - name: pgadmin
+          image: {{ .Values.pgadmin.image }}
+          resources:
+            {{- toYaml .Values.pgadmin.resources | nindent 12 }}
+          terminationMessagePath: /dev/termination-log
+          env:
+            - name: PGADMIN_SETUP_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: dgf-pgadmin-initial-creds
+                  key: EMAIL
+            - name: PGADMIN_SETUP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dgf-pgadmin-initial-creds
+                  key: PASSWORD
+            - name: SERVER_PORT
+              value: '5050'
+          ports:
+            - containerPort: 5050
+              protocol: TCP
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: pgadmin-data
+              mountPath: /var/lib/pgadmin
+          terminationMessagePolicy: File
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 75
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler

@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+  web:
+    build: ./
+    command: gunicorn --bind 0.0.0.0:5000 manage:app
+    expose:
+      - 5000
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - ${PORT}:8080
+    environment:
+      - WEB_HOST=web:5000
+    depends_on:
+      - web

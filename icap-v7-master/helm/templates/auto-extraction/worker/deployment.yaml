@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-auto-extraction-worker
+  labels:
+    application: {{ .Release.Name }}-auto-extraction-worker
+spec:
+  replicas: {{ .Values.autoExtraction.worker.replicas }}
+  selector:
+    matchLabels:
+      application: {{ .Release.Name }}-auto-extraction-worker
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      name: {{ .Release.Name }}-auto-extraction-worker
+      labels:
+        application: {{ .Release.Name }}-auto-extraction-worker
+    spec:
+      containers:
+        - name: worker
+          image: {{ .Values.common.artifactoryImageBaseUrl }}/{{ .Values.images.autoExtraction.common.name }}:{{ .Values.images.autoExtraction.common.tag }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - ./init-scripts/worker.sh
+          resources:
+            {{- toYaml .Values.autoExtraction.worker.resources | nindent 12 }}
+          env:
+            {{ include "env.fromValues" (dict "name" "REDIS_HOST" "path" .Values.backend.common.env.REDIS_HOST) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "REDIS_PORT" "path" .Values.backend.common.env.REDIS_PORT) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_HOST" "suffix" "backend-rabbitmq-creds" "key" "HOST" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_PORT" "suffix" "backend-rabbitmq-creds" "key" "PORT" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_USERNAME" "suffix" "backend-rabbitmq-creds" "key" "USERNAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_PASSWORD" "suffix" "backend-rabbitmq-creds" "key" "PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "LOCAL_LLM_SERVER_API" "path" .Values.autoExtraction.common.env.LOCAL_LLM_SERVER_API) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "TEMPERATURE" "path" .Values.autoExtraction.common.env.TEMPERATURE) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "MAX_COMPLETION_TOKENS" "path" .Values.autoExtraction.common.env.MAX_COMPLETION_TOKENS) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "TOP_P" "path" .Values.autoExtraction.common.env.TOP_P) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "REASONING_EFFORT" "path" .Values.autoExtraction.common.env.REASONING_EFFORT) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "VECTOR_DATA_BASE_API" "path" .Values.autoExtraction.common.env.VECTOR_DATA_BASE_API) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "MAX_WORKER_THREAD" "path" .Values.autoExtraction.common.env.MAX_WORKER_THREAD) | nindent 12}}

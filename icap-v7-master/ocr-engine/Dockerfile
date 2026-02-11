@@ -1,0 +1,43 @@
+# Use Red Hat's UBI 8 Python image
+FROM registry.access.redhat.com/ubi8/python-311:1-90
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/opt/app-root/bin:$PATH"
+ENV PYTHONPATH="/opt/app-root/lib/python3.11/site-packages:$PYTHONPATH"
+# ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+
+# Install any system dependencies
+USER root
+RUN dnf -y update && \
+    dnf -y install \
+    gcc \
+    python3.11-devel \
+    poppler \
+    poppler-utils \
+    mesa-libGL && \
+    dnf clean all && \
+    python -m pip install --upgrade pip setuptools wheel
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements file
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+# Copy the application code
+COPY . .
+
+# Create logs directory and set proper permissions
+RUN mkdir -p /app/logs && \
+    chown -R 1001:0 /app && \
+    chmod -R g+w /app
+
+RUN chmod +x ./init-scripts/*
+
+# Switch back to default user
+USER 1001

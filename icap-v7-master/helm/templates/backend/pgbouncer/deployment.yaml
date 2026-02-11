@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend-pgbouncer
+  labels:
+    application: {{ .Release.Name }}-backend-pgbouncer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: {{ .Release.Name }}-backend-pgbouncer
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      name: {{ .Release.Name }}-backend-pgbouncer
+      labels:
+        application: {{ .Release.Name }}-backend-pgbouncer
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: {{ .Values.common.artifactoryPublicImageBaseUrl }}/busybox:1.28
+          env:
+            - name: POSTGRESQL_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-backend-postgres-db-creds
+                  key: DB_HOST
+            - name: POSTGRESQL_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-backend-postgres-db-creds
+                  key: DB_PORT
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until nc -z -v -w1 $POSTGRESQL_HOST $POSTGRESQL_PORT 2>/dev/null; do
+                echo "Waiting for PostgreSQL service to be ready..."
+                sleep 2
+              done
+              echo "PostgreSQL service is available!"
+          resources:
+            limits:
+              cpu: 100m
+              memory: 300Mi
+            requests:
+              cpu: 100m
+              memory: 300Mi
+      containers:
+        - name: pgbouncer
+          image: {{ .Values.common.artifactoryPublicImageBaseUrl }}/{{ .Values.backend.pgbouncer.image }}
+          imagePullPolicy: IfNotPresent
+          resources:
+            {{- toYaml .Values.backend.pgbouncer.resources | nindent 12 }}
+          env:
+            - name: POSTGRESQL_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-backend-postgres-db-creds
+                  key: DB_HOST
+            - name: POSTGRESQL_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-backend-postgres-db-creds
+                  key: DB_PORT
+            - name: POSTGRESQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-backend-postgres-db-creds
+                  key: DB_NAME
+            - name: POSTGRESQL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-backend-postgres-db-creds
+                  key: DB_USERNAME
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-backend-postgres-db-creds
+                  key: DB_PASSWORD
+            - name: PGBOUNCER_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-backend-postgres-db-creds
+                  key: DB_NAME
+            - name: PGBOUNCER_PORT
+              value: {{ .Values.backend.pgbouncer.env.PGBOUNCER_PORT | quote }}
+            - name: PGBOUNCER_LISTEN_ADDRESS
+              value: {{ .Values.backend.pgbouncer.env.PGBOUNCER_LISTEN_ADDRESS | quote }}
+            - name: PGBOUNCER_AUTH_TYPE
+              value: {{ .Values.backend.pgbouncer.env.PGBOUNCER_AUTH_TYPE | quote }}
+            - name: PGBOUNCER_POOL_MODE
+              value: {{ .Values.backend.pgbouncer.env.PGBOUNCER_POOL_MODE | quote }}
+            - name: PGBOUNCER_MAX_CLIENT_CONN
+              value: {{ .Values.backend.pgbouncer.env.PGBOUNCER_MAX_CLIENT_CONN | quote }}
+            - name: PGBOUNCER_DEFAULT_POOL_SIZE
+              value: {{ .Values.backend.pgbouncer.env.PGBOUNCER_DEFAULT_POOL_SIZE | quote }}
+            - name: PGBOUNCER_MIN_POOL_SIZE
+              value: {{ .Values.backend.pgbouncer.env.PGBOUNCER_MIN_POOL_SIZE | quote }}
+            - name: PGBOUNCER_RESERVE_POOL_SIZE
+              value: {{ .Values.backend.pgbouncer.env.PGBOUNCER_RESERVE_POOL_SIZE | quote }}
+            - name: PGBOUNCER_MAX_DB_CONNECTIONS
+              value: {{ .Values.backend.pgbouncer.env.PGBOUNCER_MAX_DB_CONNECTIONS | quote }}
+          ports:
+            - containerPort: 6432
+              protocol: TCP

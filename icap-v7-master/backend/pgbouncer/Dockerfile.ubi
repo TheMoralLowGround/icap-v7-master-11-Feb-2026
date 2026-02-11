@@ -1,0 +1,1 @@
+FROM bitnamilegacy/pgbouncer:1.23.1

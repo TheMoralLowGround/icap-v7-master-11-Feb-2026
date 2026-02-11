@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-postprocess-web
+  labels:
+    application: {{ .Release.Name }}-postprocess-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: {{ .Release.Name }}-postprocess-web
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      name: {{ .Release.Name }}-postprocess-web
+      labels:
+        application: {{ .Release.Name }}-postprocess-web
+    spec:
+      volumes:
+        - name: postprocess-static
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.postprocessStatic }}
+        - name: postprocess-media
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.postprocessMedia }}
+      containers:
+        - name: web
+          image: {{ .Values.common.artifactoryImageBaseUrl }}/{{ .Values.images.postprocess.common.name }}:{{ .Values.images.postprocess.common.tag }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - ./init-scripts/web-init-prod.sh
+          resources:
+            {{- toYaml .Values.postprocess.web.resources | nindent 12 }}
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          volumeMounts:
+            - name: postprocess-static
+              mountPath: /app/static
+            - name: postprocess-media
+              mountPath: /app/media
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 20
+            timeoutSeconds: 2
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            {{ include "env.fromValues" (dict "name" "ENABLE_PERIODIC_TASK" "path" .Values.postprocess.web.env.ENABLE_PERIODIC_TASK) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "SECRET_KEY" "suffix" "postprocess-django-secret-key" "key" "SECRET_KEY" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "DEBUG" "path" .Values.postprocess.common.env.DEBUG) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "ALLOWED_HOSTS" "path" .Values.postprocess.common.env.ALLOWED_HOSTS) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "CSRF_TRUSTED_ORIGINS" "path" .Values.postprocess.common.env.CSRF_TRUSTED_ORIGINS) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DB_HOST" "suffix" "postprocess-postgres-db-creds" "key" "DB_HOST" "context" .) | nindent 12 }}
+            {{ include "env.fromReleaseSecret" (dict "name" "DB_NAME" "suffix" "postprocess-postgres-db-creds" "key" "DB_NAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DB_PORT" "suffix" "postprocess-postgres-db-creds" "key" "DB_PORT" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DB_USERNAME" "suffix" "postprocess-postgres-db-creds" "key" "DB_USERNAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DB_PASSWORD" "suffix" "postprocess-postgres-db-creds" "key" "DB_PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "REDIS_HOST" "path" .Values.backend.common.env.REDIS_HOST) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "REDIS_PORT" "path" .Values.backend.common.env.REDIS_PORT) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_HOST" "suffix" "backend-rabbitmq-creds" "key" "HOST" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_PORT" "suffix" "backend-rabbitmq-creds" "key" "PORT" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_USERNAME" "suffix" "backend-rabbitmq-creds" "key" "USERNAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_PASSWORD" "suffix" "backend-rabbitmq-creds" "key" "PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "GROQ_API_KEY" "path" .Values.postprocess.common.env.GROQ_API_KEY) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "GROQ_MODEL_NAME" "path" .Values.postprocess.common.env.GROQ_MODEL_NAME) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "LOCAL_LLM_SERVER_API" "path" .Values.postprocess.common.env.LOCAL_LLM_SERVER_API) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "TEMPERATURE" "path" .Values.postprocess.common.env.TEMPERATURE) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "TOP_P" "path" .Values.postprocess.common.env.TOP_P) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "MAX_COMPLETION_TOKENS" "path" .Values.postprocess.common.env.MAX_COMPLETION_TOKENS) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "REASONING_EFFORT" "path" .Values.postprocess.common.env.REASONING_EFFORT) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "RUN_INTERVAL_SECONDS" "path" .Values.postprocess.common.env.RUN_INTERVAL_SECONDS) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "GUNICORN_WORKERS" "path" .Values.postprocess.web.env.GUNICORN_WORKERS) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "GUNICORN_THREADS" "path" .Values.postprocess.web.env.GUNICORN_THREADS) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "GUNICORN_TIMEOUT" "path" .Values.postprocess.web.env.GUNICORN_TIMEOUT) | nindent 12}}

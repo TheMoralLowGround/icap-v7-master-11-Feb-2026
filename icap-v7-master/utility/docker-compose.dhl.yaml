@@ -1,0 +1,59 @@
+version: "3.8"
+services:
+  web:
+    build:
+      context: ./
+      dockerfile: Dockerfile.dhl
+    command: ./init-scripts/web-prod.sh
+    expose:
+      - 5000
+    volumes:
+      - ${SCRIPTS_INPUT_PATH}:/scripts
+    environment:
+      - RULES_DOCKER_URL=${RULES_DOCKER_URL}
+      - DOCBUILDER_API_URL=${DOCBUILDER_API_URL}
+      - UTILITY_ENGINE_API_URL=${UTILITY_ENGINE_API_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - BACKEND_BASE_URL=${BACKEND_BASE_URL}
+    extra_hosts:
+      - "localhost:host-gateway"
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.dhl
+    ports:
+      - ${PORT}:8080
+    environment:
+      - WEB_HOST=web:5000
+    depends_on:
+      - web
+    extra_hosts:
+      - "localhost:host-gateway"
+  worker:
+      build:
+        context: ./
+        dockerfile: Dockerfile.dhl
+      command: ./init-scripts/worker.sh
+      volumes:
+        - ${SCRIPTS_INPUT_PATH}:/scripts
+      environment:
+        - RULES_DOCKER_URL=${RULES_DOCKER_URL}
+        - DOCBUILDER_API_URL=${DOCBUILDER_API_URL}
+        - UTILITY_ENGINE_API_URL=${UTILITY_ENGINE_API_URL}
+        - REDIS_HOST=${REDIS_HOST}
+        - REDIS_PORT=${REDIS_PORT}
+        - RABBITMQ_HOST=${RABBITMQ_HOST}
+        - RABBITMQ_PORT=${RABBITMQ_PORT}
+        - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+        - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+        - WORKER_TIMEOUT=${WORKER_TIMEOUT}
+        - BACKEND_BASE_URL=${BACKEND_BASE_URL}
+      extra_hosts:
+        - "localhost:host-gateway"
+      deploy:
+        replicas: ${WORKER_REPLICAS}

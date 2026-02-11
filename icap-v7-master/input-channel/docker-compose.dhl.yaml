@@ -1,0 +1,160 @@
+version: "3.8"
+services:
+  web:
+    build:
+      context: ./
+      dockerfile: Dockerfile.dhl
+    command: ./init-scripts/web-init-prod.sh
+    ports:
+      - ${PORT}:8000
+    volumes:
+      - static_files:/app/static
+      - ./media:/app/media
+      - ${INPUT_FILES_PATH}:/input-files
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - AUTO_MIGRATE=${AUTO_MIGRATE}
+      - DB_NAME=${DB_NAME}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - WORKER_TIMEOUT=${WORKER_TIMEOUT}
+      - MAX_RETRIES=${MAX_RETRIES}
+      - GRAPH_TIMEOUT=${GRAPH_TIMEOUT}
+      - GRAPH_BASE_URL=${GRAPH_BASE_URL}
+      - GUNICORN_WORKERS=${GUNICORN_WORKERS}
+      - GUNICORN_THREADS=${GUNICORN_THREADS}
+      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-300}
+    depends_on:
+      - postgres
+    extra_hosts:
+      - "localhost:host-gateway"
+  worker:
+    build:
+      context: ./
+      dockerfile: Dockerfile.dhl
+    command: ./init-scripts/worker.sh
+    volumes:
+      - ./:/app
+      - ${INPUT_FILES_PATH}:/input-files
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - AUTO_MIGRATE=${AUTO_MIGRATE}
+      - DB_NAME=${DB_NAME}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - WORKER_TIMEOUT=${WORKER_TIMEOUT}
+      - MAX_RETRIES=${MAX_RETRIES}
+      - GRAPH_TIMEOUT=${GRAPH_TIMEOUT}
+      - GRAPH_BASE_URL=${GRAPH_BASE_URL}
+    extra_hosts:
+      - "localhost:host-gateway"
+    deploy:
+      replicas: ${WORKER_REPLICAS}
+  
+  celery:
+    build:
+      context: ./
+      dockerfile: Dockerfile.dhl
+    command: ./init-scripts/celery.sh
+    volumes:
+      - ./:/app
+      - ${INPUT_FILES_PATH}:/input-files
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - AUTO_MIGRATE=${AUTO_MIGRATE}
+      - DB_NAME=${DB_NAME}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - WORKER_TIMEOUT=${WORKER_TIMEOUT}
+      - MAX_RETRIES=${MAX_RETRIES}
+      - GRAPH_TIMEOUT=${GRAPH_TIMEOUT}
+      - GRAPH_BASE_URL=${GRAPH_BASE_URL}
+    depends_on:
+      - postgres
+    extra_hosts:
+      - "localhost:host-gateway"
+  celery_beat:
+    build:
+      context: ./
+      dockerfile: Dockerfile.dhl
+    command: ./init-scripts/celery_beat.sh
+    volumes:
+      - ./:/app
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - AUTO_MIGRATE=${AUTO_MIGRATE}
+      - DB_NAME=${DB_NAME}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - WORKER_TIMEOUT=${WORKER_TIMEOUT}
+      - MAX_RETRIES=${MAX_RETRIES}
+      - GRAPH_TIMEOUT=${GRAPH_TIMEOUT}
+      - GRAPH_BASE_URL=${GRAPH_BASE_URL}
+    depends_on:
+      - postgres
+    extra_hosts:
+      - "localhost:host-gateway"
+  postgres:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile.dhl
+    expose:
+      - 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME} -h localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  static_files:
+  postgres_data:

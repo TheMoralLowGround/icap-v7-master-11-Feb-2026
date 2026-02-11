@@ -1,0 +1,40 @@
+FROM registry.access.redhat.com/ubi8/nodejs-16:1-37 as build-stage
+
+WORKDIR /app
+
+USER 0
+
+COPY package*.json /app/
+
+RUN chown -R 1001:0 ./
+
+USER 1001
+
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+FROM aidbdockers/nginx:1.21.4-ubi8-headers-more-2 as production-stage
+
+COPY /nginx/app.conf /opt/app-root/etc/nginx.d/app.conf
+
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+
+USER 0
+
+RUN chgrp -R 0 /usr/share/nginx/html && \
+    chmod -R g=u /usr/share/nginx/html
+
+COPY entrypoint.sh /usr/share/nginx/
+
+RUN chmod +x /usr/share/nginx/entrypoint.sh
+
+USER 1001
+
+ENTRYPOINT ["/usr/share/nginx/entrypoint.sh"]
+
+EXPOSE 8080
+
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-backend-rabbitmq
+  labels:
+    application: {{ .Release.Name }}-backend-rabbitmq
+spec:
+  replicas: 1
+  # serviceName: {{ .Release.Name }}-backend-rabbitmq
+  selector:
+    matchLabels:
+      statefulset: {{ .Release.Name }}-backend-rabbitmq
+  template:
+    metadata:
+      labels:
+        application: {{ .Release.Name }}-backend-rabbitmq
+        statefulset: {{ .Release.Name }}-backend-rabbitmq
+    spec:
+      volumes:
+        - name: rabbitmq-data
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.backendRabbitmqData }}
+      containers:
+        - name: rabbitmq
+          image: {{ .Values.common.artifactoryPublicImageBaseUrl }}/{{ .Values.backend.rabbitmq.image }}
+          resources:
+            {{- toYaml .Values.backend.rabbitmq.resources | nindent 12 }}
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-backend-rabbitmq-creds
+                  key: USERNAME
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-backend-rabbitmq-creds
+                  key: PASSWORD
+          ports:
+            - containerPort: 5672
+              protocol: TCP
+            - containerPort: 15672
+              protocol: TCP
+          volumeMounts:
+            - name: rabbitmq-data
+              mountPath: /var/lib/rabbitmq/
+      securityContext:
+          runAsUser: {{ .Values.backend.rabbitmq.runAsUser }}

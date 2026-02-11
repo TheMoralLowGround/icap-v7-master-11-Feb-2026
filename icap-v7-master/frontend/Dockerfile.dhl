@@ -1,0 +1,34 @@
+FROM docker.artifactory.dhl.com/node:16.13.0 AS build-stage
+
+WORKDIR /app
+
+COPY .npmrc.dhl /app/.npmrc
+
+COPY package*.json /app/
+
+RUN npm install
+# Enable this if required for debugging
+# RUN npm install --verbose
+
+COPY . .
+
+RUN NODE_OPTIONS="--max-old-space-size=6144" npm run build
+
+FROM docker.artifactory.dhl.com/aidbdockers/nginx:1.21.3 AS production-stage
+
+COPY /nginx/app.conf /etc/nginx/conf.d/app.conf
+
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+
+RUN chgrp -R 0 /usr/share/nginx/html && \
+    chmod -R g=u /usr/share/nginx/html
+
+COPY entrypoint.sh /usr/share/nginx/
+
+RUN chmod +x /usr/share/nginx/entrypoint.sh
+
+ENTRYPOINT ["/usr/share/nginx/entrypoint.sh"]
+
+EXPOSE 8080
+
+CMD ["nginx", "-g", "daemon off;"]

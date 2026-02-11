@@ -1,0 +1,14 @@
+FROM aidbdockers/nginx:1.21.3
+
+ARG CONFIG_FILE=nginx.dev.conf.template
+
+RUN mkdir /etc/nginx/templates
+
+COPY $CONFIG_FILE /etc/nginx/templates
+
+RUN chgrp -R 0 /etc/nginx/conf.d && \
+    chmod -R g=u /etc/nginx/conf.d
+
+EXPOSE 8080
+
+CMD ["nginx", "-g", "daemon off;"]

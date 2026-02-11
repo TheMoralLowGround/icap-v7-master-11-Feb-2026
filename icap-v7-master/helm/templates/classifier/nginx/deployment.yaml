@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-classifier-nginx
+  labels:
+    application: {{ .Release.Name }}-classifier-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: {{ .Release.Name }}-classifier-nginx
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      name: {{ .Release.Name }}-classifier-nginx
+      labels:
+        application: {{ .Release.Name }}-classifier-nginx
+    spec:
+      volumes:
+        - name: classifier-static
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.classifierStatic }}
+        - name: classifier-media
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.classifierMedia }}
+      containers:
+        - name: nginx
+          image: {{ .Values.common.artifactoryImageBaseUrl }}/{{ .Values.images.classifier.nginx.name }}:{{ .Values.images.classifier.nginx.tag }}
+          imagePullPolicy: IfNotPresent
+          resources:
+            {{- toYaml .Values.classifier.nginx.resources | nindent 12 }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: classifier-static
+              mountPath: /app/static
+            - name: classifier-media
+              mountPath: /app/media
+          env:
+            {{ include "env.fromValues" (dict "name" "WEB_HOST" "path" .Values.classifier.nginx.env.WEB_HOST) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "PROXY_TIMEOUT" "path" .Values.classifier.nginx.env.PROXY_TIMEOUT) | nindent 12}}

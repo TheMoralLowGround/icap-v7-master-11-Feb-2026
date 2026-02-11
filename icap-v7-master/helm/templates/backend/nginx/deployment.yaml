@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend-nginx
+  labels:
+    application: {{ .Release.Name }}-backend-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: {{ .Release.Name }}-backend-nginx
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      name: {{ .Release.Name }}-backend-nginx
+      labels:
+        application: {{ .Release.Name }}-backend-nginx
+    spec:
+      volumes:
+        - name: backend-static
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.backendStatic }}
+        - name: backend-media
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.backendMedia }}
+        - name: common-nas
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc1.commonNas.name }}
+      containers:
+        - name: nginx
+          image: {{ .Values.common.artifactoryImageBaseUrl }}/{{ .Values.images.backend.nginx.name }}:{{ .Values.images.backend.nginx.tag }}
+          imagePullPolicy: IfNotPresent
+          resources:
+            {{- toYaml .Values.backend.web.resources | nindent 12 }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: backend-static
+              mountPath: /app/static
+            - name: backend-media
+              mountPath: /app/media
+            - name: common-nas
+              subPath: {{ .Values.common.pvc1.commonNas.subPath.batches }}
+              mountPath: /app/batches
+            - name: common-nas
+              subPath: {{ .Values.common.pvc1.commonNas.subPath.trainingDataset }}
+              mountPath: /app/training-dataset
+          env:
+            {{ include "env.fromValues" (dict "name" "WEB_HOST" "path" .Values.backend.nginx.env.WEB_HOST) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "DAPHNE_HOST" "path" .Values.backend.nginx.env.DAPHNE_HOST) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "PROXY_TIMEOUT" "path" .Values.backend.nginx.env.PROXY_TIMEOUT) | nindent 12}}

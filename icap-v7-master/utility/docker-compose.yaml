@@ -1,0 +1,49 @@
+version: "3.8"
+services:
+  web:
+    build: ./
+    command: python3 manage.py run -h 0.0.0.0
+    ports:
+      - ${PORT}:5000
+    volumes:
+      - ./:/app
+      - ${SCRIPTS_INPUT_PATH}:/scripts
+    environment:
+      - FLASK_APP=${FLASK_APP}
+      - FLASK_ENV=${FLASK_ENV}
+      - RULES_DOCKER_URL=${RULES_DOCKER_URL}
+      - DOCBUILDER_API_URL=${DOCBUILDER_API_URL}
+      - UTILITY_ENGINE_API_URL=${UTILITY_ENGINE_API_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - BACKEND_BASE_URL=${BACKEND_BASE_URL}
+    stdin_open: true
+    tty: true
+    extra_hosts:
+      - "localhost:host-gateway"
+  worker:
+    build: ./
+    command: ./init-scripts/worker.sh
+    volumes:
+      - ./:/app
+      - ${SCRIPTS_INPUT_PATH}:/scripts
+    environment:
+      - RULES_DOCKER_URL=${RULES_DOCKER_URL}
+      - DOCBUILDER_API_URL=${DOCBUILDER_API_URL}
+      - UTILITY_ENGINE_API_URL=${UTILITY_ENGINE_API_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - WORKER_TIMEOUT=${WORKER_TIMEOUT}
+      - BACKEND_BASE_URL=${BACKEND_BASE_URL}
+    extra_hosts:
+      - "localhost:host-gateway"
+    deploy:
+      replicas: ${WORKER_REPLICAS}

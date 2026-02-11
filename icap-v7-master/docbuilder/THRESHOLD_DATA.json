@@ -1,0 +1,1042 @@
+{
+    "xtoenergyinc": {
+        "statement": {
+            "left_th": 100,
+            "letfAlignmentThreshold": 50,
+            "top_th": 50,
+            "top_style_th_low": 35,
+            "top_style_th_high": 50,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 5,
+            "prepare_lines_th": 1000,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [],
+            "splitBlockByText": [],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 1750,
+            "top_bottom_diff_out_of_bottom_bound": 200,
+            "val_too_far": 850
+        }
+    },
+    "airbus": {
+        "invoice": {
+            "left_th": 0,
+            "letfAlignmentThreshold": 50,
+            "top_style_th_low": 40,
+            "top_style_th_high": 80,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 20,
+            "prepare_lines_th": 80,
+            "chunkThreshold": 25,
+            "deleteChunkByText": [
+                "DO NOT OFFLOAD",
+                "Insurance is not covered by AIRBUS"
+            ],
+            "splitBlockByText": ["PARTS", "Sold"],
+            "val_start_pos_th": 500,
+            "indexValueHorizontalDistance": 1000,
+            "top_bottom_diff_out_of_bottom_bound": 0,
+            "val_too_far": 2500,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        },
+        "commercial invoice": {
+            "left_th": 10,
+            "letfAlignmentThreshold": 50,
+            "top_th": 50,
+            "top_style_th_low": 40,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 60,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 1000,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [
+                "AOG - DO NOT OFFLOAD - AOG - DO NOT OFFLOAD"
+            ],
+            "splitBlockByText": [],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 1750,
+            "top_bottom_diff_out_of_bottom_bound": 200,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        }
+    },
+    "yokogawa": {
+        "commercial invoice": {
+            "left_th": 100,
+            "letfAlignmentThreshold": 50,
+            "top_th": 50,
+            "top_style_th_low": 35,
+            "top_style_th_high": 80,
+            "grouper_top_new_th": 150,
+            "topAlignmentThreshold": 5,
+            "prepare_lines_th": 300,
+            "chunkThreshold": 50,
+            "deleteChunkByText": [
+                "L/C Date",
+                "Page No",
+                "iiiiniii",
+                "Illllllll",
+                "lilililil",
+                "iiiiiiii"
+            ],
+            "splitBlockByText": [],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 500,
+            "top_bottom_diff_out_of_bottom_bound": 0,
+            "val_too_far": 850,
+            "del_block_containing_text": [
+                "No.\nDate\nPage No"
+            ],
+            "address_triggers": {
+                "keys": [
+                    "ship to",
+                    "consignee",
+                    "sold to"
+                ],
+                "exceptions": [
+                    "Shipped Per",
+                    "From"
+                ]
+            }
+        }
+    },
+    "pall": {
+        "deliverynote": {
+            "left_th": 10,
+            "letfAlignmentThreshold": 50,
+            "top_th": 50,
+            "top_style_th_low": 40,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 60,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 1000,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [],
+            "splitBlockByText": [
+                "Sold-To-Address"
+            ],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 1750,
+            "top_bottom_diff_out_of_bottom_bound": 200,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        },
+        "commercial invoice": {
+            "left_th": 10,
+            "letfAlignmentThreshold": 50,
+            "top_th": 50,
+            "top_style_th_low": 40,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 60,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 1000,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [
+                "Please refer to the terms & conditions on the",
+                "Information"
+            ],
+            "splitBlockByText": [
+                "Ship-To-Address"
+            ],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 1750,
+            "top_bottom_diff_out_of_bottom_bound": 200,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        },
+        "inv": {
+            "left_th": 60,
+            "letfAlignmentThreshold": 50,
+            "top_th": 50,
+            "top_style_th_low": 40,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 60,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 1000,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [
+                "Please refer to the terms & conditions on the"
+            ],
+            "splitBlockByText": [
+                "Ship-To-Address"
+            ],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 1750,
+            "top_bottom_diff_out_of_bottom_bound": 200,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        },
+        "dn": {
+            "left_th": 60,
+            "letfAlignmentThreshold": 50,
+            "top_th": 50,
+            "top_style_th_low": 40,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 60,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 1000,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [],
+            "splitBlockByText": [
+                "Sold-To-Address"
+            ],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 1750,
+            "top_bottom_diff_out_of_bottom_bound": 200,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        },
+        "packing list": {
+            "left_th": 60,
+            "letfAlignmentThreshold": 50,
+            "top_th": 50,
+            "top_style_th_low": 40,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 60,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 1000,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [],
+            "splitBlockByText": [
+                "Sold-To-Address"
+            ],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 1750,
+            "top_bottom_diff_out_of_bottom_bound": 200,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        },
+        "invoice": {
+            "left_th": 60,
+            "letfAlignmentThreshold": 50,
+            "top_th": 50,
+            "top_style_th_low": 40,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 60,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 1000,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [],
+            "splitBlockByText": [
+                "Sold-To-Address"
+            ],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 1750,
+            "top_bottom_diff_out_of_bottom_bound": 200,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        }
+    },
+    "qtb": {
+        "booking request": {
+            "left_th": 50,
+            "letfAlignmentThreshold": 20,
+            "top_style_th_low": 50,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 50,
+            "prepare_lines_th": 180,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [
+                "Cotation"
+            ],
+            "split_index_block_at": [
+                {
+                    "text": "Incoterm",
+                    "value_horizontal_distance": 500,
+                    "value_top_distance": 500
+                },
+                {
+                    "text": "Nature de la marchandise",
+                    "value_horizontal_distance": 500,
+                    "value_top_distance": 500
+                }
+            ],
+            "splitBlockByText": [
+                "A l'attention de:"
+            ],
+            "val_start_pos_th": 500,
+            "indexValueHorizontalDistance": 800,
+            "top_bottom_diff_out_of_bottom_bound": 0,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        }
+    },
+    "jinhap": {
+        "ALL": {
+            "left_th": 0,
+            "letfAlignmentThreshold": 50,
+            "top_style_th_low": 30,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 100,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 500,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [
+                "Kind of Packings",
+                "Shipping Marks",
+                "COMMERCIAL"
+            ],
+            "splitBlockByText": [
+                "Remarks",
+                "Consignee",
+                "Departure Date",
+                "Vessel",
+                "Remark",
+                "Please deliver to",
+                "Departure Date",
+                "Invoice",
+                "H.S.Code"
+            ],
+            "split_index_block_at": [
+                {
+                    "text": "Vessel",
+                    "value_horizontal_distance": 500,
+                    "value_top_distance": 500
+                },
+                {
+                    "text": "Port of Loading",
+                    "value_horizontal_distance": 500,
+                    "value_top_distance": 500
+                },
+                {
+                    "text": "Final destination",
+                    "value_horizontal_distance": 500,
+                    "value_top_distance": 500
+                }
+            ],
+            "val_start_pos_th": 1750,
+            "indexValueHorizontalDistance": 200,
+            "top_bottom_diff_out_of_bottom_bound": 20,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [
+                    "Seller",
+                    "Consignee"
+                ],
+                "exceptions": []
+            }
+        }
+    },
+    "daewon": {
+        "packing list": {
+            "left_th": 100,
+            "letfAlignmentThreshold": 50,
+            "top_style_th_low": 40,
+            "top_style_th_high": 200,
+            "grouper_top_new_th": 300,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 1000,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [],
+            "splitBlockByText": [
+                "Shipper/Exporter",
+                "Bill To Customer",
+                "SHIP To Customer",
+                "Port of Loading",
+                "Carrier",
+                "Sailing on or about",
+                "Final Destination"
+            ],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 1750,
+            "top_bottom_diff_out_of_bottom_bound": 200,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [
+                    "Bill To Customer",
+                    "SHIP To Customer"
+                ],
+                "exceptions": []
+            }
+        }
+    },
+    "siemens": {
+        "ALL": {
+            "left_th": 0,
+            "letfAlignmentThreshold": 20,
+            "top_style_th_low": 40,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 100,
+            "topAlignmentThreshold": 150,
+            "prepare_lines_th": 40,
+            "chunkThreshold": 15,
+            "split_combo_line": [],
+            "deleteChunkByText": [
+                "Transportation"
+            ],
+            "splitBlockByText": [
+                "SHIPPER REQUESTS INSURANCE",
+                "ULTIMATE CONSIGNEE",
+                "OR ID NO.",
+                "INLAND CARRIER",
+                "Shipment Route",
+                "COUNTRY OF ULTIMATE DESTINATION"
+            ],
+            "val_start_pos_th": 500,
+            "indexValueHorizontalDistance": 500,
+            "top_bottom_diff_out_of_bottom_bound": -50,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        }
+    },
+    "lg": {
+        "shipping order": {
+            "left_th": 30,
+            "letfAlignmentThreshold": 50,
+            "top_style_th_low": 40,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 100,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 300,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [
+                "SHIPPING",
+                "REQUEST"
+            ],
+            "splitBlockByText": [
+                "CONSIGNEE",
+                "NOTIFY PARTY",
+                "PORT OF LOADING",
+                "PORT OF DISCHARGE",
+                "VESSEL or Aircraft Name",
+                "Date of L/C"
+            ],
+            "val_start_pos_th": 500,
+            "indexValueHorizontalDistance": 500,
+            "top_bottom_diff_out_of_bottom_bound": 0,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        },
+        "commercial invoice": {
+            "left_th": 30,
+            "letfAlignmentThreshold": 50,
+            "top_style_th_low": 40,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 100,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 300,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [
+                "SHIPPING",
+                "REQUEST"
+            ],
+            "split_combo_line": [],
+            "splitBlockByText": [
+                "CONSIGNEE",
+                "NOTIFY PARTY",
+                "PORT OF LOADING",
+                "PORT OF DISCHARGE",
+                "Vessel or Aircraft Name",
+                "Issuing Bank",
+                "For Account & Risk of Messegers",
+                "Date of L/C"
+            ],
+            "val_start_pos_th": 500,
+            "indexValueHorizontalDistance": 500,
+            "top_bottom_diff_out_of_bottom_bound": 0,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        }
+    },
+    "festo": {
+        "ALL": {
+            "left_th": 0,
+            "letfAlignmentThreshold": 50,
+            "top_style_th_low": 40,
+            "top_style_th_high": 150,
+            "grouper_top_new_th": 500,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 50,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [
+                "Besondere Vermerke",
+                "Bitte bei alien Rlickfragen",
+                "Please always refer to",
+                "For all enquiries please indicate the Transport number",
+                "like ISO- Code. Details, see column"
+            ],
+            "split_combo_line": [],
+            "splitBlockByText": [
+                "Description",
+                "uescripuon",
+                "Delivery by",
+                "delivery terms",
+                "Transportauftrag",
+                "Anlagen",
+                "Datum",
+                "Seite",
+                "Transportauftrag",
+                "Rechnungsdatum",
+                "Wahrung",
+                "Ken",
+                "Inpack No"
+            ],
+            "val_start_pos_th": 500,
+            "indexValueHorizontalDistance": 300,
+            "top_bottom_diff_out_of_bottom_bound": 0,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        }
+    },
+    "trinseo": {
+        "booking request": {
+            "left_th": 20,
+            "letfAlignmentThreshold": 60,
+            "top_style_th_low": 40,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 50,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [],
+            "split_combo_line": [],
+            "splitBlockByText": [],
+            "val_start_pos_th": 500,
+            "indexValueHorizontalDistance": 1000,
+            "split_index_block_at": [
+                {
+                    "text": "Shipper",
+                    "value_horizontal_distance": 1000,
+                    "value_top_distance": 1000
+                },
+                {
+                    "text": "Consignee",
+                    "value_horizontal_distance": 1000,
+                    "value_top_distance": 1000
+                },
+                {
+                    "text": "Notify",
+                    "value_horizontal_distance": 1000,
+                    "value_top_distance": 1000
+                },
+                {
+                    "text": "Remarks",
+                    "value_horizontal_distance": 1000,
+                    "value_top_distance": 1000
+                }
+            ],
+            "top_bottom_diff_out_of_bottom_bound": 20,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        },
+        "forwarding order": {
+            "left_th": 30,
+            "letfAlignmentThreshold": 50,
+            "top_style_th_low": 40,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 100,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 300,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [
+                "Besondere Vermerke"
+            ],
+            "split_combo_line": [],
+            "splitBlockByText": [],
+            "val_start_pos_th": 500,
+            "indexValueHorizontalDistance": 200,
+            "top_bottom_diff_out_of_bottom_bound": 0,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        }
+    },
+    "cat": {
+        "shipping order": {
+            "left_th": 20,
+            "letfAlignmentThreshold": 0,
+            "top_style_th_low": 30,
+            "top_style_th_high": 80,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 500,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [
+                "Committed Ship",
+                "Need In Plant",
+                "Booked Quantity",
+                "PFA",
+                "PFA#",
+                "Total Gross"
+            ],
+            "splitBlockByText": [
+                "Email",
+                "Tel",
+                "Address:",
+                "Dimensions of Lifts",
+                "Consignee",
+                "Mode",
+                "Load Type",
+                "LCL",
+                "Shipping Term",
+                "Total # of lifts"
+            ],
+            "val_start_pos_th": 500,
+            "indexValueHorizontalDistance": 500,
+            "split_index_block_at": [
+                {
+                    "text": "Shipping Order Number",
+                    "value_horizontal_distance": 1000,
+                    "value_top_distance": 1000
+                },
+                {
+                    "text": "Stackable",
+                    "value_horizontal_distance": 300,
+                    "value_top_distance": 300
+                }
+            ],
+            "top_bottom_diff_out_of_bottom_bound": 0,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        }
+    },
+    "samsung": {
+        "commercial invoice": {
+            "left_th": 0,
+            "letfAlignmentThreshold": 50,
+            "top_style_th_low": 30,
+            "top_style_th_high": 80,
+            "grouper_top_new_th": 100,
+            "topAlignmentThreshold": 0,
+            "prepare_lines_th": 500,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [
+                "Carrier"
+            ],
+            "splitBlockByText": [
+                "Name & Address",
+                "Storage Location",
+                "TEL No"
+            ],
+            "val_start_pos_th": 500,
+            "indexValueHorizontalDistance": 1000,
+            "split_index_block_at": [
+                {
+                    "text": "Delivery to Address",
+                    "value_horizontal_distance": 500,
+                    "value_top_distance": 500
+                },
+                {
+                    "text": "DOM / EXP",
+                    "value_horizontal_distance": 1000,
+                    "value_top_distance": 1000
+                }
+            ],
+            "top_bottom_diff_out_of_bottom_bound": 0,
+            "val_too_far": 1500,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        }
+    },
+    "interplex": {
+        "packing list": {
+            "left_th": 0,
+            "letfAlignmentThreshold": 50,
+            "top_style_th_low": 50,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 15,
+            "prepare_lines_th": 40,
+            "chunkThreshold": 15,
+            "splitBlockByText": [
+                "SHIP TO",
+                "Notify party",
+                "Consignee"
+            ],
+            "split_index_block_at": [
+                {
+                    "text": "SELLER",
+                    "value_horizontal_distance": 500,
+                    "value_top_distance": 500
+                }
+            ],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 200,
+            "top_bottom_diff_out_of_bottom_bound": 0,
+            "val_too_far": 500,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        },
+        "commercial invoice": {
+            "left_th": 0,
+            "letfAlignmentThreshold": 50,
+            "top_style_th_low": 50,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 15,
+            "prepare_lines_th": 40,
+            "chunkThreshold": 15,
+            "splitBlockByText": [
+                "SHIP TO",
+                "Notify party",
+                "Consignee"
+            ],
+            "split_index_block_at": [
+                {
+                    "text": "SELLER",
+                    "value_horizontal_distance": 500,
+                    "value_top_distance": 500
+                }
+            ],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 200,
+            "top_bottom_diff_out_of_bottom_bound": 0,
+            "val_too_far": 500,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        },
+        "booking request": {
+            "left_th": 0,
+            "letfAlignmentThreshold": 50,
+            "top_style_th_low": 50,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 15,
+            "prepare_lines_th": 40,
+            "chunkThreshold": 15,
+            "splitBlockByText": [
+                "SHIP TO",
+                "Notify party",
+                "Consignee"
+            ],
+            "split_index_block_at": [
+                {
+                    "text": "SELLER",
+                    "value_horizontal_distance": 500,
+                    "value_top_distance": 500
+                }
+            ],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 200,
+            "top_bottom_diff_out_of_bottom_bound": 0,
+            "val_too_far": 500,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        }
+    },
+    "bel": {
+        "commercial invoice": {
+            "left_th": 0,
+            "letfAlignmentThreshold": 50,
+            "top_style_th_low": 60,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 20,
+            "prepare_lines_th": 50,
+            "chunkThreshold": 20,
+            "splitBlockByText": [],
+            "val_start_pos_th": 500,
+            "indexValueHorizontalDistance": 500,
+            "top_bottom_diff_out_of_bottom_bound": 20,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        }
+    },
+    "vestel": {
+        "shipping order": {
+            "left_th": 20,
+            "letfAlignmentThreshold": 30,
+            "top_style_th_low": 20,
+            "top_style_th_high": 80,
+            "grouper_top_new_th": 100,
+            "topAlignmentThreshold": 100,
+            "prepare_lines_th": 25,
+            "chunkThreshold": 5,
+            "split_combo_line": [],
+            "deleteChunkByText": [],
+            "splitBlockByText": [
+                "Port of Loading",
+                "Ready Date",
+                "Shipping Order Number:",
+                "Shipper (Name and Address):",
+                "Flight Number"
+            ],
+            "split_index_block_at": [
+                {
+                    "text": "Forwarder (Name and Address)",
+                    "value_horizontal_distance": 500,
+                    "value_top_distance": 500
+                }
+            ],
+            "val_start_pos_th": 500,
+            "indexValueHorizontalDistance": 500,
+            "top_bottom_diff_out_of_bottom_bound": 20,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        }
+    },
+    "irish": {
+        "ALL": {
+            "left_th": 20,
+            "letfAlignmentThreshold": 150,
+            "top_style_th_low": 20,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 200,
+            "topAlignmentThreshold": 20,
+            "prepare_lines_th": 50,
+            "chunkThreshold": 15,
+            "split_combo_line": [],
+            "deleteChunkByText": [
+                "THE GOODS LISTED BELOW ARE BEING DISPATCHED FOR SHIPMENT AS INDICATED",
+                "CONSIGNMENT NOTE",
+                "Special Instructions"
+            ],
+            "splitBlockByText": [
+                "Shipper",
+                "Notify",
+                "Forwarding Agent",
+                "Consignee Ref.",
+                "Special Shipping Instructions",
+                "Container Number",
+                "Company Seal",
+                "Customs Seal",
+                "Special Instructions",
+                "CBMS",
+                "F.O.B. VALUE",
+                "VERIFIED GROSS MASS",
+                "Description of Goods",
+                "Final Destination",
+                "Country of dispatch",
+                "Country of origin",
+                "Country of desin. Code",
+                "Country of destination",
+                "C. disp./exp. Code",
+                "Identity and",
+                "Mode of transport"
+            ],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 500,
+            "top_bottom_diff_out_of_bottom_bound": 20,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        }
+    },
+    "ford": {
+        "ALL": {
+            "left_th": 20,
+            "letfAlignmentThreshold": 50,
+            "top_style_th_low": 20,
+            "top_style_th_high": 80,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 50,
+            "prepare_lines_th": 40,
+            "chunkThreshold": 15,
+            "split_combo_line": [],
+            "deleteChunkByText": [],
+            "splitBlockByText": [
+                "Consignee Reference",
+                "Terms of Shipment"
+            ],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 500,
+            "top_bottom_diff_out_of_bottom_bound": 20,
+            "val_too_far": 850,
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        }
+    },
+    "daikyo": {
+        "ALL": {
+            "left_th": 20,
+            "letfAlignmentThreshold": 20,
+            "top_style_th_low": 30,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 500,
+            "chunkThreshold": 20,
+            "deleteChunkByText": [],
+            "splitBlockByText": [
+                "COUNTRY OF ORIGIN"
+            ],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 500,
+            "top_bottom_diff_out_of_bottom_bound": 200,
+            "val_too_far": 850,
+            "split_index_block_at": [
+                {
+                    "text": "COUNTRY OF ORIGIN",
+                    "value_horizontal_distance": 500,
+                    "value_top_distance": 500
+                }
+            ],
+            "address_triggers": {
+                "keys": [],
+                "exceptions": []
+            }
+        }
+    },
+    "qurum": {
+        "ALL":{
+            "left_th": 20,
+            "letfAlignmentThreshold": 20,
+            "top_style_th_low": 30,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 500,
+            "chunkThreshold": 20,
+            "deleteChunkByText": ["IIII", "lilililil", "llllll", "iiii", "certify"],
+            "splitBlockByText": [],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 500,
+            "top_bottom_diff_out_of_bottom_bound": 200,
+            "val_too_far": 850,
+            "address_triggers":
+            {"keys":
+                [],
+             "exceptions": []
+             }
+        }
+    },
+    "3m": {
+        "ALL":{
+            "left_th": 0,
+            "letfAlignmentThreshold": 50,
+            "top_style_th_low": 30,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 500,
+            "chunkThreshold": 20,
+            "deleteChunkByText": ["IIII", "lilililil", "llllll", "iiii", "certify"],
+            "splitBlockByText": ["Netto kg", "Versanddatum", "Warenempfänger"],
+            "val_start_pos_th": 100,
+            "indexValueHorizontalDistance": 500,
+            "top_bottom_diff_out_of_bottom_bound": 200,
+            "val_too_far": 850
+        }
+    },
+    "valeopyeong": {
+        "ALL":{
+            "left_th": 20,
+            "letfAlignmentThreshold": 20,
+            "top_style_th_low": 30,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 40,
+            "chunkThreshold": 20,
+            "deleteChunkByText": ["IIII", "lilililil", "llllll", "iiii"],
+            "splitBlockByText": [],
+            "val_start_pos_th": 500,
+            "indexValueHorizontalDistance": 1000,
+            "top_bottom_diff_out_of_bottom_bound": 0,
+            "val_too_far": 1250
+        }
+    },
+    "epiroc": {
+        "ALL":{
+            "left_th": 20,
+            "letfAlignmentThreshold": 20,
+            "top_style_th_low": 30,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 40,
+            "chunkThreshold": 20,
+            "deleteChunkByText": ["IIII", "lilililil", "llllll", "iiii"],
+            "splitBlockByText": [
+                "Port of Loading",
+                "Packing Address",
+                "Final place of Destination",
+                "Consignee",
+                "Notify Party",
+                "Exporter's Customs Code",
+                "Incoterm"
+            ],
+            "val_start_pos_th": 500,
+            "indexValueHorizontalDistance": 1000,
+            "top_bottom_diff_out_of_bottom_bound": 0,
+            "val_too_far": 1250
+        }
+    },
+    "jaguar": {
+        "ALL":{
+            "left_th": 20,
+            "letfAlignmentThreshold": 20,
+            "top_style_th_low": 30,
+            "top_style_th_high": 100,
+            "grouper_top_new_th": 50,
+            "topAlignmentThreshold": 10,
+            "prepare_lines_th": 40,
+            "chunkThreshold": 20,
+            "deleteChunkByText": ["IIII", "lilililil", "llllll", "iiii"],
+            "splitBlockByText": [
+                "Shipment"
+            ],
+            "val_start_pos_th": 500,
+            "indexValueHorizontalDistance": 1000,
+            "top_bottom_diff_out_of_bottom_bound": 0,
+            "val_too_far": 1250
+        }
+    },
+    "UNWANTED_KEYS": ["Canada"]
+}

@@ -1,0 +1,50 @@
+kind: CronJob
+apiVersion: batch/v1
+metadata:
+  name: {{ .Release.Name }}-cleanup-batches
+spec:
+  schedule: {{ .Values.infra.cleanupBatches.schedule }}
+  concurrencyPolicy: Forbid
+  suspend: {{ .Values.infra.cleanupBatches.suspend }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          volumes:
+            - name: common-nas
+              persistentVolumeClaim:
+                claimName: {{ .Values.common.pvc1.commonNas.name }}
+            - name: batch-cleanup-script
+              configMap:
+                name: {{ .Release.Name }}-batch-cleanup-script
+                defaultMode: 0777
+          containers:
+            - name: main
+              image: {{ .Values.infra.cleanupBatches.image }}
+              command:
+                - /bin/bash
+                - '-c'
+                - |
+                  #/bin/bash
+                  set -e
+
+                  mkdir -p /batches/batch-cleanup-logs
+                  log_path="/batches/batch-cleanup-logs/cleanup-$(date +%Y%m%d-%H%M%S).txt"
+                  echo "Logs for this execution will be stored at $log_path"
+                  
+                  /scripts/batch-cleanup-script.sh | tee "$log_path"
+              env:
+                - name: CLEANUP_CONFIGS
+                  value: {{ .Values.infra.cleanupBatches.env.cleanupConfigs | quote }}
+                - name: SKIP_DELETE
+                  value: {{ .Values.infra.cleanupBatches.env.skipDelete | quote }}
+              resources:
+                {{- toYaml .Values.infra.cleanupBatches.resources | nindent 16 }}
+              volumeMounts:
+                - name: common-nas
+                  subPath: {{ .Values.common.pvc1.commonNas.subPath.batches }}
+                  mountPath: /batches
+                - name: batch-cleanup-script
+                  mountPath: /scripts
+              imagePullPolicy: IfNotPresent

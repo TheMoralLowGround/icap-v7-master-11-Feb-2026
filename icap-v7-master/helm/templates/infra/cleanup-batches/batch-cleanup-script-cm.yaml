@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-batch-cleanup-script
+data:
+  batch-cleanup-script.sh: |
+    #!/bin/bash
+    set -e
+    
+    days_to_minutes() {
+      local days=$1
+      
+      # Calculate minutes (1 day = 24 hours = 1440 minutes)
+      local minutes=$((days * 1440))
+      
+      # Return the calculated minutes
+      echo "$minutes"
+    }
+
+    # Function to check and delete files
+    check_and_delete() {
+      local directory=$1
+      local type=$2
+      local pattern=$3
+      local days=$4
+      local minutes=$(days_to_minutes $days)
+      
+      echo "=== Checking $directory folder ==="
+      echo "Looking for files/folders matching: '$pattern' older than $days days"
+      
+      # First check if directory exists
+      if [ ! -d "$directory" ]; then
+        echo "ERROR: Directory $directory does not exist!"
+        return 1
+      fi
+
+      base_command="find $directory -maxdepth 1 -type '$type' -mmin '+$minutes' -regextype posix-extended -regex '$pattern'"
+      echo "base_command: '$base_command'"
+
+      # Count files that will be deleted
+      count=$(eval "$base_command | wc -l")
+      echo "Found $count files to delete"
+      
+      if [ $count -gt 0 ]; then
+        # List files that will be deleted
+        echo "Files to be deleted:"
+        ls_output=$(eval "$base_command -ls")
+        echo "$ls_output"
+
+        if [ $SKIP_DELETE = "1" ]; then
+          echo "Skipping file deletation as SKIP_DELETE flag is set"
+        else
+          echo "Deleting found files/folders..."
+          delete_output=$(eval "$base_command -exec rm -fr -v {} \;")
+          echo "$delete_output"
+        fi
+      fi
+      
+      echo "----------------------------------------"
+    }
+
+    echo "Operation started at server time: $(date)"
+
+    # Array of cleanup configurations
+    # Format: "directory:pattern:days"
+    # Conver comma seprated string CLEANUP_CONFIGS environment variables to array CLEANUP_CONFIGS_LIST
+    IFS=',' read -r -a CLEANUP_CONFIGS_LIST <<< "$CLEANUP_CONFIGS"
+
+    # Process each configuration
+    for config in "${CLEANUP_CONFIGS_LIST[@]}"; do
+      IFS=':' read -r dir type pattern days <<< "$config"
+      full_path="$dir"
+      check_and_delete "$full_path" "$type" "$pattern" "$days"
+    done
+
+    echo "Operation completed at server time: $(date)"

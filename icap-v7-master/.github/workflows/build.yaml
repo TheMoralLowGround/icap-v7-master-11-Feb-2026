@@ -1,0 +1,217 @@
+name: Build Images
+
+on:
+  push:
+    branches: [ "master" ]
+  workflow_dispatch:
+    inputs:
+      force_build_images:
+        description: 'Force build specific images (pipe-separated, must include pipes at start and end of string, e.g., "|frontend|backend-nginx|")'
+        type: string
+        default: ''
+        required: false
+
+env:
+  IMAGE_REGISTRY: dgf-edm-aidb-docker-dev-fd.artifactory.dhl.com
+  # Get current branch name using: github.head_ref || github.ref_name
+  # if branch name is not master - prepend branch name with sha commit
+  IMAGE_TAG: ${{ (github.head_ref || github.ref_name) == 'master' && github.sha || format('{0}-{1}', github.head_ref || github.ref_name, github.sha) }}
+  HTTP_PROXY: http://b2b-http.dhl.com:8080
+  HTTPS_PROXY: http://b2b-http.dhl.com:8080
+  NO_PROXY: 'dhl.com,artifactory.dhl.com,kubernetes.default'
+        
+jobs:
+  images-to-build:
+    name: Determine images to build
+    runs-on: [ "arc-small" ]
+    outputs:
+      frontend: ${{ steps.set-outputs.outputs.frontend }}
+      backend: ${{ steps.set-outputs.outputs.backend }}
+      backend-nginx: ${{ steps.set-outputs.outputs.backend-nginx }}
+      utility: ${{ steps.set-outputs.outputs.utility }}
+      utility-nginx: ${{ steps.set-outputs.outputs.utility-nginx }}
+      docbuilder: ${{ steps.set-outputs.outputs.docbuilder }}
+      docbuilder-nginx: ${{ steps.set-outputs.outputs.docbuilder-nginx }}
+      classifier: ${{ steps.set-outputs.outputs.classifier }}
+      classifier-nginx: ${{ steps.set-outputs.outputs.classifier-nginx }}
+      utility-engine-web: ${{ steps.set-outputs.outputs.utility-engine-web }}
+      utility-engine-nginx: ${{ steps.set-outputs.outputs.utility-engine-nginx }}
+      ocr-engine: ${{ steps.set-outputs.outputs.ocr-engine }}
+      ocr-engine-nginx: ${{ steps.set-outputs.outputs.ocr-engine-nginx }}
+      input-channel: ${{ steps.set-outputs.outputs.input-channel }}
+      postprocess: ${{ steps.set-outputs.outputs.postprocess }}
+      ai-agent: ${{ steps.set-outputs.outputs.ai-agent }}
+      auto-extraction: ${{ steps.set-outputs.outputs.auto-extraction }}
+      preprocess: ${{ steps.set-outputs.outputs.preprocess }}
+      build-atleast-one: ${{ steps.set-outputs.outputs.build-atleast-one }}
+      image-registry: ${{ env.IMAGE_REGISTRY }}
+      image-tag: ${{ env.IMAGE_TAG }}
+    steps:
+      - name: Checkout Repository
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        uses: actions/checkout@v4
+
+      - name: Check for file changes
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            frontend:
+              - 'frontend/**'
+            backend:
+              - 'backend/!(nginx)/**'
+            backend-nginx:
+              - 'backend/nginx/**'
+            utility:
+              - 'utility/!(nginx)/**'
+            utility-nginx:
+              - 'utility/nginx/**'
+            docbuilder:
+              - 'docbuilder/!(nginx)/**'
+            docbuilder-nginx:
+              - 'docbuilder/nginx/**'
+            classifier:
+              - 'classifier/!(nginx)/**'
+            classifier-nginx:
+              - 'classifier/nginx/**'
+            utility-engine-web:
+              - 'utility-engine/!(nginx)/**'
+            utility-engine-nginx:
+              - 'utility-engine/nginx/**'
+            ocr-engine:
+              - 'ocr-engine/!(nginx)/**'
+            ocr-engine-nginx:
+              - 'ocr-engine/nginx/**'
+            input-channel:
+              - 'input-channel/**'
+            postprocess:
+              - 'postprocess/**'
+            ai-agent:
+              - 'ai-agent/**'
+            auto-extraction:
+              - 'auto-extraction/**'
+            preprocess:
+              - 'preprocess/**'
+          
+      # Combine file changes with manual overrides
+      - name: Set outputs with override support
+        id: set-outputs
+        run: |
+          frontend=${{ steps.changes.outputs.frontend == 'true' || contains(github.event.inputs.force_build_images, '|frontend|') }}
+          backend=${{ steps.changes.outputs.backend == 'true' || contains(github.event.inputs.force_build_images, '|backend|') }}
+          backend_nginx=${{ steps.changes.outputs.backend-nginx == 'true' || contains(github.event.inputs.force_build_images, '|backend-nginx|') }}
+          utility=${{ steps.changes.outputs.utility == 'true' || contains(github.event.inputs.force_build_images, '|utility|') }}
+          utility_nginx=${{ steps.changes.outputs.utility-nginx == 'true' || contains(github.event.inputs.force_build_images, '|utility-nginx|') }}
+          docbuilder=${{ steps.changes.outputs.docbuilder == 'true' || contains(github.event.inputs.force_build_images, '|docbuilder|') }}
+          docbuilder_nginx=${{ steps.changes.outputs.docbuilder-nginx == 'true' || contains(github.event.inputs.force_build_images, '|docbuilder-nginx|') }}
+          classifier=${{ steps.changes.outputs.classifier == 'true' || contains(github.event.inputs.force_build_images, '|classifier|') }}
+          classifier_nginx=${{ steps.changes.outputs.classifier-nginx == 'true' || contains(github.event.inputs.force_build_images, '|classifier-nginx|') }}
+          utility_engine_web=${{ steps.changes.outputs.utility-engine-web == 'true' || contains(github.event.inputs.force_build_images, '|utility-engine-web|') }}
+          utility_engine_nginx=${{ steps.changes.outputs.utility-engine-nginx == 'true' || contains(github.event.inputs.force_build_images, '|utility-engine-nginx|') }}
+          ocr_engine=${{ steps.changes.outputs.ocr-engine == 'true' || contains(github.event.inputs.force_build_images, '|ocr-engine|') }}
+          ocr_engine_nginx=${{ steps.changes.outputs.ocr-engine-nginx == 'true' || contains(github.event.inputs.force_build_images, '|ocr-engine-nginx|') }}
+          input_channel=${{ steps.changes.outputs.input-channel == 'true' || contains(github.event.inputs.force_build_images, '|input-channel|') }}
+          postprocess=${{ steps.changes.outputs.postprocess == 'true' || contains(github.event.inputs.force_build_images, '|postprocess|') }}
+          ai_agent=${{ steps.changes.outputs.ai-agent == 'true' || contains(github.event.inputs.force_build_images, '|ai-agent|') }}
+          auto_extraction=${{ steps.changes.outputs.auto-extraction == 'true' || contains(github.event.inputs.force_build_images, '|auto-extraction|') }}
+          preprocess=${{ steps.changes.outputs.preprocess == 'true' || contains(github.event.inputs.force_build_images, '|preprocess|') }}
+          echo "frontend=${frontend}" >> $GITHUB_OUTPUT
+          echo "backend=${backend}" >> $GITHUB_OUTPUT
+          echo "backend-nginx=${backend_nginx}" >> $GITHUB_OUTPUT
+          echo "utility=${utility}" >> $GITHUB_OUTPUT
+          echo "utility-nginx=${utility_nginx}" >> $GITHUB_OUTPUT
+          echo "docbuilder=${docbuilder}" >> $GITHUB_OUTPUT
+          echo "docbuilder-nginx=${docbuilder_nginx}" >> $GITHUB_OUTPUT
+          echo "classifier=${classifier}" >> $GITHUB_OUTPUT
+          echo "classifier-nginx=${classifier_nginx}" >> $GITHUB_OUTPUT
+          echo "utility-engine-web=${utility_engine_web}" >> $GITHUB_OUTPUT
+          echo "utility-engine-nginx=${utility_engine_nginx}" >> $GITHUB_OUTPUT
+          echo "ocr-engine=${ocr_engine}" >> $GITHUB_OUTPUT
+          echo "ocr-engine-nginx=${ocr_engine_nginx}" >> $GITHUB_OUTPUT
+          echo "input-channel=${input_channel}" >> $GITHUB_OUTPUT
+          echo "postprocess=${postprocess}" >> $GITHUB_OUTPUT
+          echo "ai-agent=${ai_agent}" >> $GITHUB_OUTPUT
+          echo "auto-extraction=${auto_extraction}" >> $GITHUB_OUTPUT
+          echo "preprocess=${preprocess}" >> $GITHUB_OUTPUT
+
+          build_atleast_one=false
+          if [ "$frontend" = "true" ] || [ "$backend" = "true" ] || [ "$backend_nginx" = "true" ] || [ "$utility" = "true" ] || [ "$utility_nginx" = "true" ] || [ "$docbuilder" = "true" ] || [ "$docbuilder_nginx" = "true" ] || [ "$classifier" = "true" ] || [ "$classifier_nginx" = "true" ] || [ "$utility_engine_web" = "true" ] || [ "$utility_engine_nginx" = "true" ] || [ "$ocr_engine" = "true" ] || [ "$ocr_engine_nginx" = "true" ] || [ "$input_channel" = "true" ] || [ "$postprocess" = "true" ] || [ "$ai_agent" = "true" ] || [ "$auto_extraction" = "true" ] || [ "$preprocess" = "true" ]; then
+            build_atleast_one=true
+          fi
+        
+          echo "build-atleast-one=${build_atleast_one}" >> $GITHUB_OUTPUT
+          
+  build:
+    needs: images-to-build
+    if: ${{ needs.images-to-build.outputs.build-atleast-one == 'true' }}
+    strategy:
+      matrix:
+        image: [
+          { name: 'frontend', context-path: './frontend', build: '${{ needs.images-to-build.outputs.frontend }}', runs-on: 'arc-large-container', dockerfile-path: './frontend/Dockerfile.dhl'},
+          { name: 'backend', context-path: './backend', build: '${{ needs.images-to-build.outputs.backend }}', dockerfile-path: './backend/Dockerfile.dhl', build_args: "no_proxy='dhl.com,artifactory.dhl.com,kubernetes.default,archive.ubuntu.com,security.ubuntu.com,ppa.launchpad.net,launchpad.net'" },
+          { name: 'backend-nginx', context-path: './backend/nginx', build: '${{ needs.images-to-build.outputs.backend-nginx }}', dockerfile-path: './backend/nginx/Dockerfile.dhl'},
+          { name: 'utility', context-path: './utility', build: '${{ needs.images-to-build.outputs.utility }}', dockerfile-path: './utility/Dockerfile.dhl'},
+          { name: 'utility-nginx', context-path: './utility/nginx', build: '${{ needs.images-to-build.outputs.utility-nginx }}', dockerfile-path: './utility/nginx/Dockerfile.dhl'},
+          { name: 'docbuilder', context-path: './docbuilder', build: '${{ needs.images-to-build.outputs.docbuilder }}', dockerfile-path: './docbuilder/Dockerfile.dhl'},
+          { name: 'docbuilder-nginx', context-path: './docbuilder/nginx', build: '${{ needs.images-to-build.outputs.docbuilder-nginx }}', dockerfile-path: './docbuilder/nginx/Dockerfile.dhl'},
+          { name: 'classifier', context-path: './classifier', build: '${{ needs.images-to-build.outputs.classifier }}', dockerfile-path: './classifier/Dockerfile.dhl'},
+          { name: 'classifier-nginx', context-path: './classifier/nginx', build: '${{ needs.images-to-build.outputs.classifier-nginx }}', dockerfile-path: './classifier/nginx/Dockerfile.dhl'},
+          { name: 'utility-engine-web', context-path: './utility-engine', build: '${{ needs.images-to-build.outputs.utility-engine-web }}', runs-on: 'arc-large-container', dockerfile-path: './utility-engine/Dockerfile.dhl'},
+          { name: 'utility-engine-nginx', context-path: './utility-engine/nginx', build: '${{ needs.images-to-build.outputs.utility-engine-nginx }}', dockerfile-path: './utility-engine/nginx/Dockerfile.dhl'},
+          { name: 'ocr-engine', context-path: './ocr-engine', build: '${{ needs.images-to-build.outputs.ocr-engine }}', runs-on: 'arc-extralarge-container', dockerfile-path: './ocr-engine/Dockerfile.dhl' },
+          { name: 'ocr-engine-nginx', context-path: './ocr-engine/nginx', build: '${{ needs.images-to-build.outputs.ocr-engine-nginx }}', dockerfile-path: './ocr-engine/nginx/Dockerfile.dhl'},
+          { name: 'input-channel', context-path: './input-channel', build: '${{ needs.images-to-build.outputs.input-channel }}', dockerfile-path: './input-channel/Dockerfile.dhl' },
+          { name: 'postprocess', context-path: './postprocess', build: '${{ needs.images-to-build.outputs.postprocess }}', dockerfile-path: './postprocess/Dockerfile.dhl' },
+          { name: 'ai-agent', context-path: './ai-agent', build: '${{ needs.images-to-build.outputs.ai-agent }}', dockerfile-path: './ai-agent/Dockerfile.dhl' },
+          { name: 'auto-extraction', context-path: './auto-extraction', build: '${{ needs.images-to-build.outputs.auto-extraction }}', dockerfile-path: './auto-extraction/Dockerfile.dhl' },
+          { name: 'preprocess', context-path: './preprocess', build: '${{ needs.images-to-build.outputs.preprocess }}', dockerfile-path: './preprocess/Dockerfile.dhl' },
+        ]
+        exclude:
+          - image: { build: 'false' }
+    name: Build ${{ matrix.image.name }}
+    uses: EDM-DocBuilder/github-actions-reusable-docker-build/.github/workflows/reusable-docker-build.yml@v1.1.11
+    with:
+      image_registry: ${{ needs.images-to-build.outputs.image-registry }}
+      image_name: icap-v7-${{ matrix.image.name }}
+      image_tag: ${{ needs.images-to-build.outputs.image-tag }}
+      context_path: ${{ matrix.image.context-path }}
+      dockerfile_path: ${{ matrix.image.dockerfile-path }}
+      runs_on: ${{ matrix.image.runs-on }}
+      build_args: ${{ matrix.image.build_args }}
+      enable_lfs: true
+      lfs_repo_host: artifactory.dhl.com
+    secrets:
+      ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+      ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+      LFS_REPO_USERNAME: ${{ secrets.LFS_REPO_USERNAME }}
+      LFS_REPO_PASSWORD: ${{ secrets.LFS_REPO_PASSWORD }}
+  
+  update-image-tags:
+    needs: ['images-to-build', 'build']
+    if: ${{ needs.images-to-build.outputs.build-atleast-one == 'true' }}
+    name: Update image tags
+    uses: EDM-DocBuilder/github-actions-update-image-tags/.github/workflows/update-image-tags.yml@v1.0.0
+    with:
+      image_tag: ${{ needs.images-to-build.outputs.image-tag }}
+      values_file: 'helm/values.yaml'
+      yaml_paths: |
+        '.images.frontend.tag': ${{ needs.images-to-build.outputs.frontend }}
+        '.images.backend.common.tag': ${{ needs.images-to-build.outputs.backend }}
+        '.images.backend.nginx.tag': ${{ needs.images-to-build.outputs.backend-nginx }}
+        '.images.utility.common.tag': ${{ needs.images-to-build.outputs.utility }}
+        '.images.utility.nginx.tag': ${{ needs.images-to-build.outputs.utility-nginx }}
+        '.images.docbuilder.common.tag': ${{ needs.images-to-build.outputs.docbuilder }}
+        '.images.docbuilder.nginx.tag': ${{ needs.images-to-build.outputs.docbuilder-nginx }}
+        '.images.classifier.common.tag': ${{ needs.images-to-build.outputs.classifier }}
+        '.images.classifier.nginx.tag': ${{ needs.images-to-build.outputs.classifier-nginx }}
+        '.images.utilityEngine.web.tag': ${{ needs.images-to-build.outputs.utility-engine-web }}
+        '.images.utilityEngine.nginx.tag': ${{ needs.images-to-build.outputs.utility-engine-nginx }}
+        '.images.ocrEngine.common.tag': ${{ needs.images-to-build.outputs.ocr-engine }}
+        '.images.ocrEngine.nginx.tag': ${{ needs.images-to-build.outputs.ocr-engine-nginx }}
+        '.images.inputChannel.common.tag': ${{ needs.images-to-build.outputs.input-channel }}
+        '.images.postprocess.common.tag': ${{ needs.images-to-build.outputs.postprocess }}
+        '.images.aiAgent.common.tag': ${{ needs.images-to-build.outputs.ai-agent }}
+        '.images.autoExtraction.common.tag': ${{ needs.images-to-build.outputs.auto-extraction }}
+        '.images.preprocess.common.tag': ${{ needs.images-to-build.outputs.preprocess }}

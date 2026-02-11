@@ -1,0 +1,68 @@
+images:
+  backend:
+    common:
+      name: icap-v7-backend
+      tag: d09405973cc6ba8b4d662d92da4d76378920aca4
+    nginx:
+      name: icap-v7-backend-nginx
+      tag: 81189cc3b42338672666baf9db017ee2646c7a54
+  docbuilder:
+    common:
+      name: icap-v7-docbuilder
+      tag: 85a312fbe6cddc9f12d54befd154f42f0575f9a7
+    nginx:
+      name: icap-v7-docbuilder-nginx
+      tag: 85a312fbe6cddc9f12d54befd154f42f0575f9a7
+  classifier:
+    common:
+      name: icap-v7-classifier
+      tag: 21f3bac94a8244c2e91d6e76a575720de38a2679
+    nginx:
+      name: icap-v7-classifier-nginx
+      tag: e860f4d9bfc868dcd9022f55bb32ff2905057bdd
+  frontend:
+    name: icap-v7-frontend
+    tag: d09405973cc6ba8b4d662d92da4d76378920aca4
+  utilityEngine:
+    nginx:
+      name: icap-v7-utility-engine-nginx
+      tag: 85a312fbe6cddc9f12d54befd154f42f0575f9a7
+    web:
+      name: icap-v7-utility-engine-web
+      tag: 85a312fbe6cddc9f12d54befd154f42f0575f9a7
+  utility:
+    common:
+      name: icap-v7-utility
+      tag: 180ecf320b07522954080c1696b952e27988b0cb
+    nginx:
+      name: icap-v7-utility-nginx
+      tag: 85a312fbe6cddc9f12d54befd154f42f0575f9a7
+  ocrEngine:
+    common:
+      name: icap-v7-ocr-engine
+      tag: fbb1fb15c9068833c2123d44bb18b67db0c2f5e0
+    nginx:
+      name: icap-v7-ocr-engine-nginx
+      tag: 85a312fbe6cddc9f12d54befd154f42f0575f9a7
+  inputChannel:
+    common:
+      name: icap-v7-input-channel
+      tag: acd8eeba9d81fb823867d39883751d5545606703
+  postprocess:
+    common:
+      name: icap-v7-postprocess
+      tag: 180ecf320b07522954080c1696b952e27988b0cb
+  aiAgent:
+    common:
+      name: icap-v7-ai-agent
+      tag: 2e3ebd009a5306455191a8be571123f96caae876
+  autoExtraction:
+    common:
+      name: icap-v7-auto-extraction
+      tag: 2e3ebd009a5306455191a8be571123f96caae876
+  preprocess:
+    common:
+      name: icap-v7-preprocess
+      tag: 6b98ff630cf46dc4310ca82f63888dbb507ffe1b
+pgadmin:
+  image: registry.connect.redhat.com/crunchydata/crunchy-pgadmin4@sha256:0666d86fc8b208df9d670b13e0c87523357d03f116b40a4282d579014709a83a

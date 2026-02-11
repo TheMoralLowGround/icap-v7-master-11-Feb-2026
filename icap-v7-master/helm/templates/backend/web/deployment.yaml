@@ -1,0 +1,149 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend-web
+  labels:
+    application: {{ .Release.Name }}-backend-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: {{ .Release.Name }}-backend-web
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      name: {{ .Release.Name }}-backend-web
+      labels:
+        application: {{ .Release.Name }}-backend-web
+    spec:
+      volumes:
+        - name: backend-static
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.backendStatic }}
+        - name: backend-media
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc.backendMedia }}
+        - name: common-nas
+          persistentVolumeClaim:
+            claimName: {{ .Values.common.pvc1.commonNas.name }}
+      containers:
+        - name: web
+          image: {{ .Values.common.artifactoryImageBaseUrl }}/{{ .Values.images.backend.common.name }}:{{ .Values.images.backend.common.tag }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - ./init-scripts/web-prod.sh
+          resources:
+            {{- toYaml .Values.backend.web.resources | nindent 12 }}
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          volumeMounts:
+            - name: common-nas
+              subPath: {{ .Values.common.pvc1.commonNas.subPath.batches }}
+              mountPath: /batches
+            - name: backend-static
+              mountPath: /app/static
+            - name: backend-media
+              mountPath: /app/media
+            - name: common-nas
+              subPath: {{ .Values.common.pvc1.commonNas.subPath.trainingDataset }}
+              mountPath: /training-dataset
+            - name: common-nas
+              subPath: {{ .Values.common.pvc1.commonNas.subPath.changeLogs }}
+              mountPath: /change_logs
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 20
+            timeoutSeconds: 2
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            {{ include "env.fromReleaseSecret" (dict "name" "SECRET_KEY" "suffix" "backend-django-secret-key" "key" "SECRET_KEY" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "DEBUG" "path" .Values.backend.common.env.DEBUG) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "ALLOWED_HOSTS" "path" .Values.backend.common.env.ALLOWED_HOSTS) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "CSRF_TRUSTED_ORIGINS" "path" .Values.backend.common.env.CSRF_TRUSTED_ORIGINS) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "CORS_ALLOWED_ORIGINS" "path" .Values.backend.common.env.CORS_ALLOWED_ORIGINS) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "AUTO_MIGRATE" "path" .Values.backend.common.env.AUTO_MIGRATE) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DB_NAME" "suffix" "backend-postgres-db-creds" "key" "DB_NAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DB_PORT" "suffix" "backend-postgres-db-creds" "key" "DB_PORT" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DB_USERNAME" "suffix" "backend-postgres-db-creds" "key" "DB_USERNAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DB_PASSWORD" "suffix" "backend-postgres-db-creds" "key" "DB_PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "PGBOUNCER_HOST" "path" .Values.backend.common.env.PGBOUNCER_HOST) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "PGBOUNCER_PORT" "path" .Values.backend.common.env.PGBOUNCER_PORT) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "REDIS_HOST" "path" .Values.backend.common.env.REDIS_HOST) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "REDIS_PORT" "path" .Values.backend.common.env.REDIS_PORT) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_HOST" "suffix" "backend-rabbitmq-creds" "key" "HOST" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_PORT" "suffix" "backend-rabbitmq-creds" "key" "PORT" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_USERNAME" "suffix" "backend-rabbitmq-creds" "key" "USERNAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "RABBITMQ_PASSWORD" "suffix" "backend-rabbitmq-creds" "key" "PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "DOCBUILDER_API_URL" "path" .Values.backend.common.env.DOCBUILDER_API_URL) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "UTILITY_API_URL" "path" .Values.backend.common.env.UTILITY_API_URL) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "ICAP_API_URL" "path" .Values.backend.common.env.ICAP_API_URL) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "FRONTEND_URL" "path" .Values.backend.common.env.FRONTEND_URL) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "DEFINITION_VERSIONS" "path" .Values.backend.common.env.DEFINITION_VERSIONS) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "DEFAULT_DEFINITION_VERSION" "path" .Values.backend.common.env.DEFAULT_DEFINITION_VERSION) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DATACAP_API_BASE_URL" "suffix" "datacap-creds" "key" "API_BASE_URL" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DATACAP_APP" "suffix" "datacap-creds" "key" "APP" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DATACAP_USER" "suffix" "datacap-creds" "key" "USER" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DATACAP_PASSWORD" "suffix" "datacap-creds" "key" "PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DATACAP_STATION" "suffix" "datacap-creds" "key" "STATION" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DATACAP_JOB" "suffix" "datacap-creds" "key" "JOB" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DATACAP_MILI_JOB" "suffix" "datacap-creds" "key" "MILI_JOB" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "ENABLE_LDAP_AUTH" "path" .Values.backend.common.env.ENABLE_LDAP_AUTH) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "LDAP_SERVER_ADDRESS" "suffix" "ldap-creds" "key" "SERVER_ADDRESS" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "LDAP_SERVER_PORT" "suffix" "ldap-creds" "key" "SERVER_PORT" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "LDAP_BIND_DN" "suffix" "ldap-creds" "key" "BIND_DN" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "LDAP_BIND_PASSWORD" "suffix" "ldap-creds" "key" "BIND_PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "LDAP_USER_SEARCH_DN" "suffix" "ldap-creds" "key" "USER_SEARCH_DN" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "LDAP_GROUP_SEARCH_DN" "suffix" "ldap-creds" "key" "GROUP_SEARCH_DN" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "LDAP_AUTH_USER_GROUP" "suffix" "ldap-creds" "key" "AUTH_USER_GROUP" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "LDAP_AUTH_SUPERUSER_GROUP" "suffix" "ldap-creds" "key" "AUTH_SUPERUSER_GROUP" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "SEND_EMAILS" "path" .Values.backend.common.env.SEND_EMAILS) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "EMAIL_HOST" "suffix" "backend-email-creds" "key" "HOST" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "EMAIL_PORT" "suffix" "backend-email-creds" "key" "PORT" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "EMAIL_HOST_USER" "suffix" "backend-email-creds" "key" "USER" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "EMAIL_HOST_PASSWORD" "suffix" "backend-email-creds" "key" "PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "EMAIL_USE_TLS" "suffix" "backend-email-creds" "key" "USE_TLS" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "CLASSIFIER_API_URL" "path" .Values.backend.common.env.CLASSIFIER_API_URL) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "MAX_RETRY" "path" .Values.backend.common.env.MAX_RETRY) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "RETRY_INTERVAL" "path" .Values.backend.common.env.RETRY_INTERVAL) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "SERVER_IP" "path" .Values.backend.common.env.SERVER_IP) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "SAVE_TRANSACTION_LOG" "path" .Values.backend.common.env.SAVE_TRANSACTION_LOG) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "DATACAP_CALLBACK_AWAITING" "path" .Values.backend.common.env.DATACAP_CALLBACK_AWAITING) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "BATCH_ID_PREFIX" "path" .Values.backend.common.env.BATCH_ID_PREFIX) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "AI_AGENT_SERVICE_IDENTIFIER" "path" .Values.backend.common.env.AI_AGENT_SERVICE_IDENTIFIER) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "AI_AGENT_HOST" "path" .Values.backend.common.env.AI_AGENT_HOST) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "AI_AGENT_PORT" "path" .Values.backend.common.env.AI_AGENT_PORT) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "LOGIN_TIMEOUT_VALUE" "path" .Values.backend.common.env.LOGIN_TIMEOUT_VALUE) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DDH_BASE_URL" "suffix" "ddh-creds" "key" "API_BASE_URL" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DDH_USERNAME" "suffix" "ddh-creds" "key" "USERNAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "DDH_PASSWORD" "suffix" "ddh-creds" "key" "PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "ANNOTATION_BASE_URL" "suffix" "annotation-creds" "key" "BASE_URL" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "ANNOTATION_USERNAME" "suffix" "annotation-creds" "key" "USERNAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "ANNOTATION_PASSWORD" "suffix" "annotation-creds" "key" "PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "INPUT_CHANNEL_BASE_URL" "suffix" "input-channel-creds" "key" "BASE_URL" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "INPUT_CHANNEL_USERNAME" "suffix" "input-channel-creds" "key" "USERNAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "INPUT_CHANNEL_PASSWORD" "suffix" "input-channel-creds" "key" "PASSWORD" "context" .) | nindent 12}}            
+            {{ include "env.fromValues" (dict "name" "SELECTED_DATASET_LIST_FILE" "path" .Values.backend.common.env.SELECTED_DATASET_LIST_FILE) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "GUNICORN_WORKERS" "path" .Values.backend.web.env.GUNICORN_WORKERS) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "GUNICORN_THREADS" "path" .Values.backend.web.env.GUNICORN_THREADS) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "GUNICORN_TIMEOUT" "path" .Values.backend.web.env.GUNICORN_TIMEOUT) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "FERNET_SECRET_KEY" "suffix" "fernet-secret-key" "key" "KEY" "context" .) | nindent 12}}  
+            {{ include "env.fromReleaseSecret" (dict "name" "LOOKUP_DB_NAME" "suffix" "lookup-postgres-db-creds" "key" "DB_NAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "LOOKUP_DB_HOST" "suffix" "lookup-postgres-db-creds" "key" "DB_HOST" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "LOOKUP_DB_PORT" "suffix" "lookup-postgres-db-creds" "key" "DB_PORT" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "LOOKUP_DB_USERNAME" "suffix" "lookup-postgres-db-creds" "key" "DB_USERNAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "LOOKUP_DB_PASSWORD" "suffix" "lookup-postgres-db-creds" "key" "DB_PASSWORD" "context" .) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "QDRANT_VECTOR_DB_BASE_URL" "path" .Values.backend.web.env.QDRANT_VECTOR_DB_BASE_URL) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "GRAPECITY_SPREADJS_LICENSE" "path" .Values.backend.web.env.GRAPECITY_SPREADJS_LICENSE) | nindent 12}}
+            {{ include "env.fromValues" (dict "name" "EXTRACTION_CLIENT_ID" "path" .Values.backend.common.env.EXTRACTION_CLIENT_ID) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "EXTRACTION_RABBITMQ_HOST" "suffix" "extraction-rabbitmq-creds" "key" "HOST" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "EXTRACTION_RABBITMQ_PORT" "suffix" "extraction-rabbitmq-creds" "key" "PORT" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "EXTRACTION_RABBITMQ_USERNAME" "suffix" "extraction-rabbitmq-creds" "key" "USERNAME" "context" .) | nindent 12}}
+            {{ include "env.fromReleaseSecret" (dict "name" "EXTRACTION_RABBITMQ_PASSWORD" "suffix" "extraction-rabbitmq-creds" "key" "PASSWORD" "context" .) | nindent 12}}

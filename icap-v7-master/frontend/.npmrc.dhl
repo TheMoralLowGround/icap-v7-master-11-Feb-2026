@@ -1,0 +1,5 @@
+//_auth = c3J2X2RxZmFkbTpBUDJQY0Q4ZGR5WUtBZUxZQmFZZVAzQ24yZWcxN3hUR3V1VHBNTg==
+registry=https://artifactory.dhl.com/artifactory/api/npm/npm/
+email = data.framework@dhl.com
+always-auth = false
+strict-ssl=false

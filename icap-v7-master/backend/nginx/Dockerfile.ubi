@@ -1,0 +1,24 @@
+FROM aidbdockers/nginx:1.21.4-ubi8-headers-more-2
+
+ARG CONFIG_FILE=nginx.dev.conf.template
+
+WORKDIR /app
+
+COPY $CONFIG_FILE /opt/app-root/etc/nginx.d/app.conf.template
+
+USER 0
+
+RUN chgrp -R 0 /opt/app-root/etc/nginx.d && \
+    chmod -R g=u /opt/app-root/etc/nginx.d
+
+COPY entrypoint-ubi.sh /usr/share/nginx/
+
+RUN chmod +x /usr/share/nginx/entrypoint-ubi.sh
+
+USER 1001
+
+ENTRYPOINT ["/usr/share/nginx/entrypoint-ubi.sh"]
+
+EXPOSE 8080
+
+CMD ["nginx", "-g", "daemon off;"]
